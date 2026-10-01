@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-01-lefthook-pre-push-origin-head-repair.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-10-01-lefthook-pre-push-origin-head-repair.md
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push:
+  en: 383825793f054b23
+  zh: 82d4d25f2fbb8819
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push/problem:
+  en: aa24076eea455f75
+  zh: 19dfa4b7f8d67110
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push/decision:
+  en: a70836c55109a618
+  zh: 72b123b401258f77
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push/alternatives-considered:
+  en: 19bfbb3055f0afc9
+  zh: 7a8d744067effa5f
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push/consequences:
+  en: 92aef64c8eb50756
+  zh: b1ce29f427618ab5
+/agent-note-a-dangling-origin-head-no-longer-blocks-lefthook-pre-push/testing:
+  en: ee14143f43799cd2
+  zh: 7af1a0967404d949

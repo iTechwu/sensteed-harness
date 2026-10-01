@@ -283,6 +283,63 @@ describe('worktree-local Lefthook installer', { timeout: 90_000 }, () => {
     expect(readFileSync(legacyHook, 'utf8')).toBe('#!/bin/sh\n# legacy hook\n')
   })
 
+  // Lefthook's pre-push file gate falls back to the branch named by
+  // refs/remotes/origin/HEAD, so these cases track the installer's repair of a
+  // symref left dangling by a remote branch rename.
+  function addOriginTrackingRefs(fixture: Fixture, branches: string[]): void {
+    git(fixture, fixture.main, ['remote', 'add', 'origin', join(fixture.container, 'origin.git')])
+    for (const branch of branches) {
+      git(fixture, fixture.main, ['update-ref', `refs/remotes/origin/${branch}`, 'HEAD'])
+    }
+  }
+
+  it('repairs a dangling origin/HEAD to the renamed main ref', async () => {
+    const fixture = createFixture()
+    addOriginTrackingRefs(fixture, ['main'])
+    git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'])
+
+    const install = await runInstaller(fixture, fixture.main)
+
+    expect(install.status, install.stderr).toBe(0)
+    expect(git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD'])).toBe('refs/remotes/origin/main')
+    expect(install.stderr).toContain('[install-lefthook] repaired dangling refs/remotes/origin/HEAD -> refs/remotes/origin/main')
+  })
+
+  it('repairs a dangling origin/HEAD to master when no main ref exists', async () => {
+    const fixture = createFixture()
+    addOriginTrackingRefs(fixture, ['master'])
+    git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'])
+
+    const install = await runInstaller(fixture, fixture.main)
+
+    expect(install.status, install.stderr).toBe(0)
+    expect(git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD'])).toBe('refs/remotes/origin/master')
+  })
+
+  it('leaves an origin/HEAD that already resolves untouched', async () => {
+    const fixture = createFixture()
+    addOriginTrackingRefs(fixture, ['main'])
+    git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'])
+
+    const install = await runInstaller(fixture, fixture.main)
+
+    expect(install.status, install.stderr).toBe(0)
+    expect(git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD'])).toBe('refs/remotes/origin/main')
+    expect(install.stderr).not.toContain('[install-lefthook] repaired dangling')
+  })
+
+  it('warns and keeps the installation passing when a dangling origin/HEAD is unrepairable', async () => {
+    const fixture = createFixture()
+    addOriginTrackingRefs(fixture, [])
+    git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/develop'])
+
+    const install = await runInstaller(fixture, fixture.main)
+
+    expect(install.status, install.stderr).toBe(0)
+    expect(install.stderr).toContain('dangles at "refs/remotes/origin/develop"')
+    expect(git(fixture, fixture.main, ['symbolic-ref', 'refs/remotes/origin/HEAD'])).toBe('refs/remotes/origin/develop')
+  })
+
   it('replaces the owned hook path Git copies into a newly added worktree', async () => {
     const fixture = createFixture()
     const mainInstall = await runInstaller(fixture, fixture.main)

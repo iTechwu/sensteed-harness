@@ -26,6 +26,8 @@ const INSTALL_LOCK_TIMEOUT_MS = 30_000
 const INSTALL_LOCK_INITIALIZATION_TIMEOUT_MS = 5_000
 const INSTALL_LOCK_POLL_MS = 50
 const ALLOW_HOOKS_PATH_OVERRIDE = 'DSH_LEFTHOOK_ALLOW_HOOKS_PATH_OVERRIDE'
+const ORIGIN_HEAD_REF = 'refs/remotes/origin/HEAD'
+const ORIGIN_HEAD_REPAIR_CANDIDATES = ['main', 'master']
 const REPOSITORY_EXTENSION_PATTERN = '^extensions\\.'
 function errorCode(error) {
   return typeof error === 'object' && error !== null && 'code' in error
@@ -563,6 +565,40 @@ function environmentWithoutCommandGitConfig() {
   return env
 }
 
+function refExists(root, ref) {
+  return git(['show-ref', '--verify', '--quiet', ref], root, { allowStatuses: [1] }).status === 0
+}
+
+/**
+ * Lefthook's pre-push file gate diffs HEAD against @{push} and, when that is
+ * unresolvable (first push of a new branch), falls back to the branch named by
+ * refs/remotes/origin/HEAD; a symref left dangling by a remote branch rename
+ * then fails every such push with exit status 128. Point a dangling symref at
+ * an existing main or master ref, or warn; never fail the installation over it.
+ */
+function repairDanglingOriginHead(root) {
+  const symbolic = git(
+    ['symbolic-ref', '--quiet', ORIGIN_HEAD_REF],
+    root,
+    { allowStatuses: [1] },
+  )
+  if (symbolic.status === 1) return
+  const target = symbolic.stdout.trim()
+  if (refExists(root, target)) return
+  for (const name of ORIGIN_HEAD_REPAIR_CANDIDATES) {
+    const candidate = `refs/remotes/origin/${name}`
+    if (!refExists(root, candidate)) continue
+    git(['symbolic-ref', ORIGIN_HEAD_REF, candidate], root)
+    console.error(`[install-lefthook] repaired dangling ${ORIGIN_HEAD_REF} -> ${candidate}`)
+    return
+  }
+  console.error(
+    `[install-lefthook] ${ORIGIN_HEAD_REF} dangles at ${JSON.stringify(target)} and neither `
+    + 'refs/remotes/origin/main nor refs/remotes/origin/master exists; lefthook pre-push will fail '
+    + 'on the first push of a new branch until you run: git remote set-head origin --auto',
+  )
+}
+
 function runLefthook(root, lefthook) {
   const args = ['install', '--force']
   const env = environmentWithoutCommandGitConfig()
@@ -742,6 +778,14 @@ async function main() {
         )
       }
       throw error
+    }
+    try {
+      repairDanglingOriginHead(root)
+    } catch (repairError) {
+      console.error(
+        `[install-lefthook] skipped ${ORIGIN_HEAD_REF} repair: `
+        + `${repairError instanceof Error ? repairError.message : String(repairError)}`,
+      )
     }
   } catch (error) {
     installationError = error
