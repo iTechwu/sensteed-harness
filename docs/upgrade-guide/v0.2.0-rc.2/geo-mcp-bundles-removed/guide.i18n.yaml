@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.0-rc.2/geo-mcp-bundles-removed/guide.md
+/:
+  en: afc6dac65630cfd1
+  zh: c0da1787183989ff
+/geo-mcp-bundles-are-removed:
+  en: 07a86b46d61efb9d
+  zh: d8d6b65cb4bfa053
+/geo-mcp-bundles-are-removed/change:
+  en: 54284ffe4a14cb10
+  zh: 6964f58746b08a09
+/geo-mcp-bundles-are-removed/migration:
+  en: dcae8751fddbfa31
+  zh: 02962c843e11a354

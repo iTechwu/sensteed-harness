@@ -21,7 +21,7 @@ afterEach(async () => {
 test('registers only the public gateway through the credential service', async () => {
   const patch = await readFile(patchUrl, 'utf8')
 
-  expect(patch).toMatch(/url: 'https:\/\/ixicai\.cn\/mcp\/montage'/)
+  expect(patch).toMatch(/url: 'https:\/\/ai.hozonauto.com\/mcp\/montage'/)
   expect(patch).toMatch(/authorizationCredential: MODELS_API_KEY/)
   expect(patch).toMatch(/missing MODELS_API_KEY fails before the client connects/)
   expect(patch).not.toMatch(/process\.env\.MODELS_API_KEY|headers:\s*\n\s*Authorization:/)
@@ -114,7 +114,7 @@ describe('reference inspection tool projection', () => {
       jobId: 'job-1',
     }))
     registerTextTool(ctx, 'mcp__openmontage__list_video_artifacts', async () => '{"artifacts":[]}')
-    registerTextTool(ctx, 'mcp__geoflow__search', async () => 'unrelated')
+    registerTextTool(ctx, 'mcp__tools-platform__search', async () => 'unrelated')
 
     const prepared = await execute(ctx, agent, 'mcp__openmontage__prepare_reference_clone', { source: 'https://example.test/video' })
 
@@ -123,13 +123,13 @@ describe('reference inspection tool projection', () => {
     expect(schemaNames(ctx, agent)).toContain('mcp__openmontage__submit_video_job')
     expect(schemaNames(ctx, agent)).not.toContain('mcp__openmontage__prepare_reference_clone')
     expect(schemaNames(ctx, agent)).not.toContain('mcp__openmontage__list_video_artifacts')
-    expect(schemaNames(ctx, agent)).not.toContain('mcp__geoflow__search')
+    expect(schemaNames(ctx, agent)).not.toContain('mcp__tools-platform__search')
 
     await execute(ctx, agent, 'mcp__openmontage__submit_video_job', { workflow: 'animation' })
 
     expect(schemaNames(ctx, agent)).toContain('mcp__openmontage__prepare_reference_clone')
     expect(schemaNames(ctx, agent)).toContain('mcp__openmontage__list_video_artifacts')
-    expect(schemaNames(ctx, agent)).toContain('mcp__geoflow__search')
+    expect(schemaNames(ctx, agent)).toContain('mcp__tools-platform__search')
   })
 })
 
