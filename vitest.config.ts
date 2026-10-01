@@ -123,6 +123,9 @@ const pwshCoverageExclusions = spawnSync(resolvePwshPath(), ['-NoLogo', '-NoProf
 const testIncludes = [
   'packages/*/*/tests/**/*.spec.{ts,tsx}',
   'apps/*/tests/**/*.spec.{ts,tsx}',
+  // Plugin bundles are plain directories (not workspace packages); their .mjs
+  // suites import workspace sources through tsconfig paths like every other lane.
+  'plugins/*/test/**/*.test.mjs',
   'scripts/**/*.spec.ts',
   'website/tests/**/*.spec.ts',
 ]

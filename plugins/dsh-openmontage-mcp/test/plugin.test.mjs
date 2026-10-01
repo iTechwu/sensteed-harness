@@ -4,7 +4,6 @@ import AgentLoop from '../../../packages/core/agent-loop/src/index.ts'
 import { mountAgentLoopTestDependencies } from '../../../packages/test-support/agent-loop-testkit/src/index.ts'
 import { createUserMessage, ToolCallId } from '../../../packages/llm/llm/src/index.ts'
 import { SessionId } from '../../../packages/core/session/src/index.ts'
-import SessionProjectionRegistry from '../../../packages/session/session-projection/src/index.ts'
 import { afterEach, describe, expect, test } from 'vitest'
 import { MockAdapter, textResponse } from '../../../packages/core/agent-loop/tests/mock-adapter.ts'
 import * as OpenMontage from '../index.js'
@@ -58,7 +57,6 @@ async function harness(config = {}) {
   const ctx = new Context()
   contexts.push(ctx)
   await mountAgentLoopTestDependencies(ctx)
-  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(OpenMontage, config)
   return ctx
