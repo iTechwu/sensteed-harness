@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.0-rc.2/mcp-gateway-default-domain/guide.md
+/:
+  en: 6d098b1de614c6f8
+  zh: 6245b99c591ae427
+/mcp-gateway-default-host-moves-to-ai-hozonauto-com:
+  en: 01c8b389cd5e4d4f
+  zh: 5c99101b78894aea
+/mcp-gateway-default-host-moves-to-ai-hozonauto-com/change:
+  en: 2250ec9319d91a69
+  zh: f46bf20fa5c79c21
+/mcp-gateway-default-host-moves-to-ai-hozonauto-com/migration:
+  en: cf42fe614a40b55d
+  zh: a4cad9d6e875138e

@@ -462,7 +462,7 @@ describe('apply (plugin lifecycle)', () => {
     const httpConfig: Config = {
       transport: 'streamable-http',
       serverName: 'media',
-      url: 'https://ixicai.cn/mcp/media',
+      url: 'https://ai.hozonauto.com/mcp/media',
       headers: {},
       authorizationCredential: 'MODELS_API_KEY',
       toolCallTimeoutMs: 30_000,
@@ -477,7 +477,7 @@ describe('apply (plugin lifecycle)', () => {
 
     const nativeFetch = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }))
     vi.stubGlobal('fetch', nativeFetch)
-    await options?.fetch?.(new URL('https://ixicai.cn/mcp/media'), {
+    await options?.fetch?.(new URL('https://ai.hozonauto.com/mcp/media'), {
       headers: { Accept: 'application/json' },
     })
     const sentHeaders = nativeFetch.mock.calls[0]?.[1]?.headers as Headers
@@ -488,7 +488,7 @@ describe('apply (plugin lifecycle)', () => {
     expect(credentials).toBeInstanceOf(TestCredentialProvider)
     if (!(credentials instanceof TestCredentialProvider)) throw new Error('test provider missing')
     credentials.value = 'rotated-models-key'
-    await options?.fetch?.(new URL('https://ixicai.cn/mcp/media'), {})
+    await options?.fetch?.(new URL('https://ai.hozonauto.com/mcp/media'), {})
     const rotatedHeaders = nativeFetch.mock.calls[1]?.[1]?.headers as Headers
     expect(rotatedHeaders.get('Authorization')).toBe('Bearer rotated-models-key')
   })
@@ -497,7 +497,7 @@ describe('apply (plugin lifecycle)', () => {
     const httpConfig: Config = {
       transport: 'streamable-http',
       serverName: 'media',
-      url: 'https://ixicai.cn/mcp/media',
+      url: 'https://ai.hozonauto.com/mcp/media',
       headers: {},
       authorizationCredential: 'MODELS_API_KEY',
       toolCallTimeoutMs: 30_000,

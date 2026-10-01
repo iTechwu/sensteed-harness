@@ -17,7 +17,7 @@
       config:
         transport: streamable-http
         serverName: openmontage
-        url: 'https://ixicai.cn/mcp/montage'
+        url: 'https://ai.hozonauto.com/mcp/montage'
         authorizationCredential: MODELS_API_KEY
         # Reference preparation performs download, ffmpeg analysis and optional
         # transcription synchronously. Keep the MCP request budget below the

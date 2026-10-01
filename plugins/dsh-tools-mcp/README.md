@@ -30,7 +30,7 @@ honour the confirm/`idempotencyKey` contract on side-effecting writes.
 
 | Env var | Meaning | Default |
 | --- | --- | --- |
-| `MCP_BASE_URL` | Unified MCP gateway base URL; each domain appends `/tools/<domain>` | `https://ixicai.cn/mcp` |
+| `MCP_BASE_URL` | Unified MCP gateway base URL; each domain appends `/tools/<domain>` | `https://ai.hozonauto.com/mcp` |
 | `MODELS_API_KEY` | Single Models API key sent to the gateway | *(required)* |
 
 The harness runs with host networking (DSH refuses `0.0.0.0`; Nginx proxies via the host

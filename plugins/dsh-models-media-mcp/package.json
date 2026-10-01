@@ -1,7 +1,7 @@
 {
   "name": "@dofe/dsh-models-media-mcp",
   "version": "0.1.0",
-  "description": "DeepSeek Harness bundle: registers Models media generation (https://ixicai.cn/mcp/media) as a Streamable-HTTP MCP server. Single-shot image and 5-10s single-shot video tasks surface as mcp__media__<tool>, and a prompt section tells the model when to use them instead of OpenMontage.",
+  "description": "DeepSeek Harness bundle: registers Models media generation (https://ai.hozonauto.com/mcp/media) as a Streamable-HTTP MCP server. Single-shot image and 5-10s single-shot video tasks surface as mcp__media__<tool>, and a prompt section tells the model when to use them instead of OpenMontage.",
   "type": "module",
   "license": "MIT",
   "main": "index.js",

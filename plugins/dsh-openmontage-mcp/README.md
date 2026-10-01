@@ -84,7 +84,7 @@ directly at the `artifacts` level.
 |---|---|---|
 | `MODELS_API_KEY` | Single Models API key resolved by the DSH credential service and sent to the gateway | *(required)* |
 
-The MCP endpoint is fixed at `https://ixicai.cn/mcp/montage`; users do not
+The MCP endpoint is fixed at `https://ai.hozonauto.com/mcp/montage`; users do not
 configure a CI-only base URL.
 
 The MCP client requires `MODELS_API_KEY` before connecting, and the gateway validates it on every request. DSH configures no OpenMontage service token or job attribution.

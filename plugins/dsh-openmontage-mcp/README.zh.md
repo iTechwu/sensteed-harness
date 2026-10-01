@@ -34,7 +34,7 @@ Host 插件默认在三个等价的无进展结果后为对应 Agent 打开熔�
 |---|---|---|
 | `MODELS_API_KEY` | 由 DSH 凭据服务解析并发送给网关的唯一 Models API key | *（必填）* |
 
-MCP 端点固定为 `https://ixicai.cn/mcp/montage`；用户不能配置仅 CI 可用的 base URL。
+MCP 端点固定为 `https://ai.hozonauto.com/mcp/montage`；用户不能配置仅 CI 可用的 base URL。
 
 MCP 客户端在连接前要求提供 `MODELS_API_KEY`，网关会在每个请求中验证该凭据。DSH 不配置 OpenMontage 服务 token 或 job attribution。
 

@@ -7,7 +7,7 @@ const montageGuidanceUrl = new URL('../../dsh-openmontage-mcp/index.js', import.
 
 test('registers only the fixed public media MCP endpoint', async () => {
   const patch = await readFile(patchUrl, 'utf8')
-  expect(patch).toMatch(/url: 'https:\/\/ixicai\.cn\/mcp\/media'/)
+  expect(patch).toMatch(/url: 'https:\/\/ai.hozonauto.com\/mcp\/media'/)
   expect(patch).toMatch(/authorizationCredential: MODELS_API_KEY/)
   expect(patch).not.toMatch(/process\.env\.MODELS_API_KEY/)
   expect(patch).not.toMatch(/MCP_BASE_URL|MEDIA_MCP_URL|MEDIA_BASE_URL/)

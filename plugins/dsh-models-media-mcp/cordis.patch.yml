@@ -1,5 +1,5 @@
 # dsh-models-media-mcp bundle patch.
-# Registers Models 媒体生成 (https://ixicai.cn/mcp/media) as a single Streamable HTTP
+# Registers Models 媒体生成 (https://ai.hozonauto.com/mcp/media) as a single Streamable HTTP
 # MCP client so its tools surface to the model under the mcp__media__<tool> namespace
 # (create_image_task / create_video_task / get_generation_task / cancel_generation_task).
 #
@@ -16,7 +16,7 @@
       config:
         transport: streamable-http
         serverName: media
-        url: 'https://ixicai.cn/mcp/media'
+        url: 'https://ai.hozonauto.com/mcp/media'
         authorizationCredential: MODELS_API_KEY
         toolCallTimeoutMs: 60000
         failOnStartupError: false
