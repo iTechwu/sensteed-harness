@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-24-tool-ci.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-08-24-tool-ci.md
+/agent-note-tool-ci-ci-quality-gate-tool:
+  en: 959e5e65a187f214
+  zh: 11e86f1cee688580
+/agent-note-tool-ci-ci-quality-gate-tool/problem:
+  en: bc8295f4e2bb4a9a
+  zh: d5703fb8553b2a4d
+/agent-note-tool-ci-ci-quality-gate-tool/decision:
+  en: 5f5f7e428d899f2f
+  zh: 6c59af2b93637075
+/agent-note-tool-ci-ci-quality-gate-tool/alternatives-considered:
+  en: 00ae9dda9fd1b3b4
+  zh: 0bbda69a801a1a4f
+/agent-note-tool-ci-ci-quality-gate-tool/consequences:
+  en: 90a50b1bfb2af864
+  zh: 7fde863f18228b51

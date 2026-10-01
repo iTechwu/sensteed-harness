@@ -39,7 +39,7 @@ test('guidance carries the complete client-stage lifecycle', async () => {
   expect(section.text).toMatch(/job_id=jobId、stage=stage、stage_attempt=stageAttempt、lease_token=leaseToken/)
   expect(section.text).toMatch(/instructionFiles/)
   expect(section.text).toMatch(/{"path": result\.relative_path, "content_hash": result\.content_hash}/)
-  expect(section.text).toMatch(/组成 submit 的 instruction_provenance/)
+  expect(section.text).toMatch(/instruction 记录入参/)
   expect(section.text).toMatch(/declaredTools 只是 pipeline manifest 的原始术语/)
   expect(section.text).toMatch(/只能把 gatewayTools 中的精确工具名传给 invoke_openmontage_tool/)
   expect(section.text).toMatch(/artifacts 必须以 produces 中的标准产物名为顶层 key/)

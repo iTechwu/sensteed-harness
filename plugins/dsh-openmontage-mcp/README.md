@@ -70,7 +70,8 @@ with `inputs.operation: "render"`; use the live input schema for other allowed
 values.
 Treat `stageContract` as authoritative for that attempt: read every
 `instructionFiles` entry through `read_openmontage_file`, and map each returned
-result to `instruction_provenance` as
+result into the instruction-record argument named by `submit_client_stage`'s
+schema as
 `{"path": result.relative_path, "content_hash": result.content_hash}`.
 `declaredTools` contains raw pipeline-manifest vocabulary; pass only exact names
 from `gatewayTools` to `invoke_openmontage_tool`. Key submitted `artifacts` by

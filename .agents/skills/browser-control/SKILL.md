@@ -34,4 +34,4 @@ Prefer the site adapter command when one exists; use raw browser driving only fo
 
 ## Cleanup
 
-Release the session when done. Never leave a logged-in browser session or captured credentials behind. Report what the run did and any state exceptions in provenance.
+Release the session when done. Never leave a logged-in browser session or captured credentials behind. Report what the run did and any state exceptions together with the exact sources that produced them.

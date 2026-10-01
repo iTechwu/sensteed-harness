@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write plugins/dsh-models-media-mcp/README.md
+/dsh-models-media-mcp:
+  en: 8aa19d4c343e1fae
+  zh: c97a88341b12406b
+/dsh-models-media-mcp/section:
+  en: 0c8902eb46fb0650
+  zh: 0c8902eb46fb0650
+/dsh-models-media-mcp/section~2:
+  en: 3ef77b73549f5089
+  zh: 3ef77b73549f5089
+/dsh-models-media-mcp/section~3:
+  en: 61454f9a1260956a
+  zh: 61454f9a1260956a

@@ -1,5 +1,7 @@
 # dsh-agent-run
 
+English | [中文](README.zh.md)
+
 A DeepSeek Harness (DSH) **bundle** that ships a headless agent-exec executable —
 `dsh-agent-run` — which OpenMontage spawns as its pipeline-stage executor,
 **replacing `codex exec`**. It uses DeepSeek Harness's own LLM + `bash` tool to

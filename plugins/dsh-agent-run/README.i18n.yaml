@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write plugins/dsh-agent-run/README.md
+/dsh-agent-run:
+  en: 5db71985003fc24b
+  zh: 46835eb9aa342540
+/dsh-agent-run/what-it-does:
+  en: d3146543a9295234
+  zh: 5d2799f15e4a10c6
+/dsh-agent-run/the-exact-openmontage-agent-executor-json-argv:
+  en: 70fc11738fe33279
+  zh: 768634c4c6d0bef0
+/dsh-agent-run/how-the-bin-is-invoked:
+  en: 84b0352b59f661bb
+  zh: 7f1635c77871c7b3
+/dsh-agent-run/mechanism-run-one-agent-task-write-the-checkpoint:
+  en: 19176b0e76121201
+  zh: e6b980229b0461e5
+/dsh-agent-run/the-cordis-yml-it-boots:
+  en: ec5b5ecc02150146
+  zh: c34909d2ca5ef91d
+/dsh-agent-run/the-agent-prompt-section:
+  en: 9951caf129b9230a
+  zh: 8ec008e4ac3bcb21
+/dsh-agent-run/install-build:
+  en: ccbf2a36891ae4b6
+  zh: a2a6df4ad94d6aed
+/dsh-agent-run/environment-variables:
+  en: 8a0ad8955892abe4
+  zh: 0aea11dce399cf01
+/dsh-agent-run/files:
+  en: 10629489d9904db0
+  zh: 135b9aca5501e470

@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-11-document-modal-focus-isolation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-11-document-modal-focus-isolation.md
-2026-09-11-document-modal-focus-isolation.md: e32c0b29c48432ac377c606b5846f94a99ea58b9
-2026-09-11-document-modal-focus-isolation.zh.md: 0e4cb60caa07c2a3ec4ab897606a9de987655e29
+/agent-note-document-modal-focus-isolation:
+  en: 5b8fe66df23bf9f0
+  zh: b7d40a150eb8c094
+/agent-note-document-modal-focus-isolation/problem:
+  en: 54d14b9d02a3e534
+  zh: 7780e23808fbbebb
+/agent-note-document-modal-focus-isolation/decision:
+  en: 04205afb8dec777a
+  zh: 0849041306e8af28
+/agent-note-document-modal-focus-isolation/alternatives-considered:
+  en: 272d912e78c3a1d3
+  zh: aad0975303f0f73b
+/agent-note-document-modal-focus-isolation/consequences:
+  en: d705e1407210a71b
+  zh: 023f39093b56327a
+/agent-note-document-modal-focus-isolation/verification:
+  en: a791f9b10ba663a8
+  zh: 6fb04d8801d7d950

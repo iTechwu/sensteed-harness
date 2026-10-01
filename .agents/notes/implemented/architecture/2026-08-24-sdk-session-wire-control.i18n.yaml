@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-24-sdk-session-wire-control.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-24-sdk-session-wire-control.md
+/agent-note-sdk-session-wire-control:
+  en: 8cd641a797a89f93
+  zh: b1601b98024a1c44
+/agent-note-sdk-session-wire-control/problem:
+  en: 5067b0b7383ef1b8
+  zh: c1efd302543b2119
+/agent-note-sdk-session-wire-control/decision:
+  en: 1efe7fe83eaf59b6
+  zh: b8d2fae1f947733c
+/agent-note-sdk-session-wire-control/alternatives-considered:
+  en: 4a7b5e58517636ae
+  zh: 676549b25f3e3650
+/agent-note-sdk-session-wire-control/consequences:
+  en: 45b5d6fdfc2eaec8
+  zh: 930bd69ebfb0f97d

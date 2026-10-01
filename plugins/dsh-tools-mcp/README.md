@@ -1,5 +1,7 @@
 # dsh-tools-mcp
 
+English | [中文](README.zh.md)
+
 A DeepSeek Harness (DSH) **bundle** that registers `tools.dofe.ai`'s nine business-domain
 Streamable HTTP MCP endpoints as additional MCP clients in the `web` profile, and adds a
 system-prompt section telling the model when to use them.

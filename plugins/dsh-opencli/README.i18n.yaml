@@ -1,0 +1,13 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write plugins/dsh-opencli/README.md
+/dofe-dsh-opencli:
+  en: f0f47b4b7c8723cb
+  zh: a3b4f122ee9e42ae
+/dofe-dsh-opencli/usage:
+  en: 6ef4c61af5339fd2
+  zh: 4ae5b63810648ce7
+/dofe-dsh-opencli/deploy:
+  en: 98cf03364a754045
+  zh: df04be5b28d0fc40

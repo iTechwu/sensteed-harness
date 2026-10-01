@@ -26,7 +26,7 @@ Host 插件默认在三个等价的无进展结果后为对应 Agent 打开熔�
 
 外层 `operation: "generate"` 选择的是网关执行生命周期，不能代替逻辑工具自身的 operation。调用 `video_compose` 时，把选定的工具 operation 放在 `inputs` 内，例如外层 `operation: "generate"` 与 `inputs.operation: "render"` 同时存在；其他允许值以实时 input schema 为准。
 
-把 `stageContract` 视为该次执行的权威约定：通过 `read_openmontage_file` 读取每个 `instructionFiles` 项，并把每个返回结果映射为 `instruction_provenance`：`{"path": result.relative_path, "content_hash": result.content_hash}`。`declaredTools` 包含 pipeline manifest（流水线元数据清单）中的原始词汇；只把 `gatewayTools` 中的精确名称传给 `invoke_openmontage_tool`。使用 `produces` 作为提交的 `artifacts` 顶层键。例如传入 `{"research_brief": {<brief fields>}}`，不要把 brief 字段直接放在 `artifacts` 顶层。
+把 `stageContract` 视为该次执行的权威约定：通过 `read_openmontage_file` 读取每个 `instructionFiles` 项，并把每个返回结果按 `submit_client_stage` schema 中定名的 instruction 记录入参映射为 `{"path": result.relative_path, "content_hash": result.content_hash}`。`declaredTools` 包含 pipeline manifest（流水线元数据清单）中的原始词汇；只把 `gatewayTools` 中的精确名称传给 `invoke_openmontage_tool`。使用 `produces` 作为提交的 `artifacts` 顶层键。例如传入 `{"research_brief": {<brief fields>}}`，不要把 brief 字段直接放在 `artifacts` 顶层。
 
 ## 凭据
 

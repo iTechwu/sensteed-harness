@@ -2,7 +2,7 @@
 
 Status: implemented
 
-English | 中文
+[English](2026-09-07-gateway-request-body-limit.md) | 中文
 
 ## Problem
 

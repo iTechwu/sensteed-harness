@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-07-gateway-request-body-limit.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-07-gateway-request-body-limit.md
+/agent-note-deepseek:
+  en: f8322bd615c7050a
+  zh: 80e9d820cdaf3315
+/agent-note-deepseek/problem:
+  en: 4c98134f0f7d91fe
+  zh: 0bde77dab8371a73
+/agent-note-deepseek/decision:
+  en: 6c68e0fddca4bd2b
+  zh: 958fcd3ecf898096
+/agent-note-deepseek/alternatives-considered:
+  en: 300ec80ee12f7341
+  zh: 5348ee5e9f08cb0c
+/agent-note-deepseek/consequences:
+  en: b9a3fdaa37e0b596
+  zh: 4622093ee39f4351
+/agent-note-deepseek/verification:
+  en: 213e07a35660bac3
+  zh: 4099bf1b15c856bb

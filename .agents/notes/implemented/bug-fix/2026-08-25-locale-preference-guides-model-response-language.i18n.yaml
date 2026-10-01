@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-25-locale-preference-guides-model-response-language.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-25-locale-preference-guides-model-response-language.md
-2026-08-25-locale-preference-guides-model-response-language.md: c3983e18787fc67242fbdc0809e54a615eb7e803
-2026-08-25-locale-preference-guides-model-response-language.zh.md: 98499a09474a76f1aa1f2ed23e3d68d149b66fea
+/agent-note-locale-preference-guides-model-response-language:
+  en: 8a5c82cda1b1cc39
+  zh: 4d9cac28419c326a
+/agent-note-locale-preference-guides-model-response-language/problem:
+  en: f3beca5ea68ee7aa
+  zh: bf280939065b5414
+/agent-note-locale-preference-guides-model-response-language/decision:
+  en: 3760fc4c3a3ca22f
+  zh: 24791a520e254b3b
+/agent-note-locale-preference-guides-model-response-language/alternatives-considered:
+  en: d6aec9683f2928f0
+  zh: d4e5c9c394413b93
+/agent-note-locale-preference-guides-model-response-language/consequences:
+  en: 3b47398dbe9e3deb
+  zh: 4fd5b7fb7ba0b9e9
+/agent-note-locale-preference-guides-model-response-language/verification:
+  en: fe61944ae0ed005e
+  zh: 276f106077c5e45f

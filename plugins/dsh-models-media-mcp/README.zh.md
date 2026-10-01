@@ -1,6 +1,6 @@
 # dsh-models-media-mcp
 
-English | [中文](README.zh.md)
+[English](README.md) | 中文
 
 DeepSeek Harness bundle：把 Models 媒体生成 MCP（`https://ai.hozonauto.com/mcp/media`）注册为
 Streamable HTTP MCP server，server name 固定为 `media`，工具以 `mcp__media__*` 暴露。

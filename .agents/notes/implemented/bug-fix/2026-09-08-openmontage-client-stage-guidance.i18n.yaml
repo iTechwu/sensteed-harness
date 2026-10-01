@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-08-openmontage-client-stage-guidance.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-08-openmontage-client-stage-guidance.md
-2026-09-08-openmontage-client-stage-guidance.md: fb9fa0d981d516fbcabaefeb947a60571e1b8069
-2026-09-08-openmontage-client-stage-guidance.zh.md: 6f5a177e15e1f4d47be1ff6b52d56eed9b674c6f
+/agent-note-openmontage-client-workflow-guidance-and-loop-control:
+  en: be34d7440909b43b
+  zh: a4c4e03662a4f08f
+/agent-note-openmontage-client-workflow-guidance-and-loop-control/problem:
+  en: e2dfbe6677520e6a
+  zh: 50cb2aaaeb73d755
+/agent-note-openmontage-client-workflow-guidance-and-loop-control/decision:
+  en: 5782fce4179bbd2d
+  zh: 507d12df038a8cab
+/agent-note-openmontage-client-workflow-guidance-and-loop-control/alternatives-considered:
+  en: 0e573a33a2ddae9a
+  zh: e18662addb0b59e2
+/agent-note-openmontage-client-workflow-guidance-and-loop-control/consequences:
+  en: 69522e41c4080658
+  zh: 8b34292048d5e5af
+/agent-note-openmontage-client-workflow-guidance-and-loop-control/verification:
+  en: 484f1a53b5e5cb7c
+  zh: df5bdc57f490f41b

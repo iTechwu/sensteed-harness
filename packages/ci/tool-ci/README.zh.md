@@ -19,6 +19,8 @@ kind: "package-reference"
 - [模型体验](#model-experience)
 - [已知限制](#known-limitations-and-deferred-work)
 
+<a id="tool"></a>
+
 ## 工具
 
 | 工具 | 参数 | 行为 |
@@ -26,6 +28,8 @@ kind: "package-reference"
 | `ci_run` | `cwd`（string，必填）；`gates`（string[]，必填）；`stopOnFailure`（boolean，可选） | 在 `cwd` 中按顺序运行门禁命令，每个门禁捕获有界输出尾部，并返回结构化的 `{ cwd, overall, gates[] }` 值。`overall` 为 `passed`、`failed` 或 `aborted`。 |
 
 `gates` 接受 shell 命令字符串（例如 `pnpm lint`），而不是裸脚本名，从而由模型控制具体调用方式，而工具负责结构化判定与停止策略。
+
+<a id="config"></a>
 
 ## 配置
 
@@ -40,9 +44,13 @@ kind: "package-reference"
   name: @deepseek-ai/dsh-tool-ci
 ```
 
+<a id="stable-registration"></a>
+
 ## 稳定注册
 
 工具注册遵循启用即注册，而非依赖后端可用性：无法运行的门禁被报告为结构化值中的 failed 门禁，而不是抛出一个基础设施错误，从而在不同 provider/executor 变化下保持模型 schema 稳定。本包不发布 invariant 伴随插件：`ci_run` 不持有任何状态，每次调用都通过 shell 能力缝解析门禁，结构化值就是该次调用的唯一投影。
+
+<a id="model-experience"></a>
 
 ## 模型体验
 
@@ -59,6 +67,8 @@ kind: "package-reference"
 #### KV Cache 影响
 
 本工具不引入持久会话状态；结果值与普通工具结果一样进入转录，遵循会话的常规缓存规则。
+
+<a id="known-limitations-and-deferred-work"></a>
 
 ## 已知限制
 

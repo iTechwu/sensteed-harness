@@ -2,6 +2,8 @@
 
 Status: implemented
 
+English | [中文](2026-08-24-sdk-session-wire-control.zh.md)
+
 ## Problem
 
 The SDK runtime needs wire-level control over a session's live work: cancel the running Agent, resume from persistence, and change the durable approval policy. Each of these already existed behind an internal factory or event, and inventing parallel JSON-RPC semantics would fork the ownership of persistence, approval policy, and Agent lifecycle. The wire contract also needs a boundary for what a session creator may seed (an environment overlay) versus what must stay out of process configuration.

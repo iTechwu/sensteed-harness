@@ -1,5 +1,7 @@
 # @dofe/dsh-opencli
 
+English | [中文](README.zh.md)
+
 Registers an `opencli` model tool in the dsh web profile so the harness can
 drive a real Google Chrome browser and 100+ site adapters through the OpenCLI CLI.
 
