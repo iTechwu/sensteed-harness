@@ -14,7 +14,7 @@ describe('Deliverables theme surface styles', () => {
   it('keeps the aligned upstream delivery-card radii and themed fills', () => {
     expect(rule('.file')).toContain('border-radius: 18px')
     expect(rule('.fileIcon')).toContain('border-radius: 10px')
-    expect(rule('.fileIcon')).toContain('background: var(--deliverable-fill)')
+    expect(rule('.fileIcon')).toContain('background: color-mix(in srgb, var(--dsw-static-neutral-00) 50%, transparent)')
     expect(rule('.root')).toContain('--deliverable-fill:')
     expect(css).toContain('[data-ds-dark-theme]')
   })

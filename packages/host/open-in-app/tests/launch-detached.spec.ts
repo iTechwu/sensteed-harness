@@ -63,7 +63,7 @@ describe('launchDetachedApp watch window', () => {
       const launched = launchDetachedApp('fixture-app', [], { watchMs: 100, env: { ELECTRON_RUN_AS_NODE: '1' } })
       child.emit('exit', 0, null)
       return launched.then(() => {
-        const environment = vi.mocked(spawn).mock.calls[0]![2]!.env as Record<string, string | undefined>
+        const environment = vi.mocked(spawn).mock.calls[0]![2].env ?? {}
         expect(Object.keys(environment).filter(key => key.toUpperCase() === 'ELECTRON_RUN_AS_NODE')).toEqual(['ELECTRON_RUN_AS_NODE'])
       })
     } finally {

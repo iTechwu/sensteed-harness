@@ -197,9 +197,9 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
     [layout, namespace, schema],
   )
   // The DeepSeek card offers both wire protocols; a card without an explicit
-// selection defaults to Messages, matching the Messages-first endpoint hint
-// rendered beside it.
-const deepSeekProtocols = ['messages', 'chat-completions'] as const
+  // selection defaults to Messages, matching the Messages-first endpoint hint
+  // rendered beside it.
+  const deepSeekProtocols = ['messages', 'chat-completions'] as const
 
   useEffect(() => {
     if (accountProvider) return

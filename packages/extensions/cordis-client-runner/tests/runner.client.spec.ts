@@ -458,7 +458,7 @@ describe('render failures', () => {
       }`,
     }))
     expect(outcome).toMatchObject({ ok: false, cause: 'activate' })
-    const failure = outcome.ok === false && outcome.error instanceof Error ? outcome.error.message : ''
+    const failure = !outcome.ok && outcome.error instanceof Error ? outcome.error.message : ''
     expect(failure).toContain('slot "root" entry component must be a component function')
     expect(bench.reported).toEqual([])
   })
