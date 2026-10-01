@@ -28,7 +28,6 @@ import type {} from '@deepseek-ai/dsh-shell'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { TerminalCallView, TerminalResultView, ToolResult } from '@deepseek-ai/dsh-tools'
-import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
 
 /** Cordis plugin name used by loader diagnostics. */
@@ -333,7 +332,7 @@ export function applyCiRunTool(ctx: Context, config: ResolvedConfig): void {
         },
       },
       render: (_args, value) => [{ type: 'text', text: renderCiRunValue(value) }],
-      presentationMeta: (_args, value) => value as unknown as JsonValue,
+      presentationMeta: (_args, value) => value,
     },
     timeoutMs: config.timeoutMs,
     // CI gates may write to the workspace (build artifacts, generated files), so

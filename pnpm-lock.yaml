@@ -2122,6 +2122,9 @@ importers:
       '@deepseek-ai/dsh-tool-call-timeout-policy':
         specifier: workspace:*
         version: link:../../guard/timeout-policy
+      '@deepseek-ai/dsh-tool-ci':
+        specifier: workspace:*
+        version: link:../../ci/tool-ci
       '@deepseek-ai/dsh-tool-fs':
         specifier: workspace:*
         version: link:../../fs/tool-fs
@@ -2792,25 +2795,22 @@ importers:
         version: link:../../../vendor/schemastery
     devDependencies:
       '@deepseek-ai/cordis':
-        specifier: workspace:^
+        specifier: workspace:~
         version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
       '@deepseek-ai/dsh-sandbox':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../sandbox/sandbox
       '@deepseek-ai/dsh-shell':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../shell/shell
       '@deepseek-ai/dsh-system-prompt':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../core/system-prompt
       '@deepseek-ai/dsh-tools':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../core/tools
       '@deepseek-ai/dsh-util-values':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../util/values
 
   packages/client/connection:
@@ -11411,16 +11411,16 @@ importers:
   packages/settings/settings-file:
     dependencies:
       '@deepseek-ai/cordis':
-        specifier: workspace:^
+        specifier: workspace:~
         version: link:../../../vendor/cordis
       '@deepseek-ai/dsh-atomic-write':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../util/atomic-write
       '@deepseek-ai/dsh-home-paths':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../util/home-paths
       '@deepseek-ai/dsh-util-values':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../util/values
       '@deepseek-ai/schemastery':
         specifier: link:../../../vendor/schemastery
@@ -11433,7 +11433,7 @@ importers:
         version: 2.9.0
     devDependencies:
       '@deepseek-ai/dsh-settings':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../settings
 
   packages/shell/bash-local:

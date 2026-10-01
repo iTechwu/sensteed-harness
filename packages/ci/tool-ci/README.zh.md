@@ -5,20 +5,19 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-tool-ci
 
-## 概述
-
 [English](README.md) | 中文
+
+## 概述
 
 模型可用的 `ci_run` 质量门禁工具，构建在 [shell 能力缝](../../shell/shell/README.zh.md)（`ctx.shell`）之上。它在目标目录按顺序运行一个或多个门禁命令，返回单一结构化结论：总体判定 + 每个门禁的记录（退出码、信号、超时/中止事实、耗时、有界输出尾部）。默认在首个失败门禁处停止。每个门禁都经 `ctx.shell` 执行，沙箱、超时与取消由 shell 执行器负责；本包只负责模型可见的职责。
 
 ## 目录
 
-- [工具](#工具)
-- [配置](#配置)
-- [稳定注册](#稳定注册)
-- [模型体验](#模型体验)
-- [已知限制](#已知限制)
-- [开发备注](#开发备注)
+- [工具](#tool)
+- [配置](#config)
+- [稳定注册](#stable-registration)
+- [模型体验](#model-experience)
+- [已知限制](#known-limitations-and-deferred-work)
 
 ## 工具
 
@@ -43,7 +42,7 @@ kind: "package-reference"
 
 ## 稳定注册
 
-工具注册遵循启用即注册，而非依赖后端可用性：无法运行的门禁被报告为结构化值中的 failed 门禁，而不是抛出一个基础设施错误，从而在不同 provider/executor 变化下保持模型 schema 稳定。
+工具注册遵循启用即注册，而非依赖后端可用性：无法运行的门禁被报告为结构化值中的 failed 门禁，而不是抛出一个基础设施错误，从而在不同 provider/executor 变化下保持模型 schema 稳定。本包不发布 invariant 伴随插件：`ci_run` 不持有任何状态，每次调用都通过 shell 能力缝解析门禁，结构化值就是该次调用的唯一投影。
 
 ## 模型体验
 

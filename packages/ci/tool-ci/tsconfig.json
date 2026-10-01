@@ -11,7 +11,6 @@
     { "path": "../../core/tools" },
     { "path": "../../core/system-prompt" },
     { "path": "../../shell/shell" },
-    { "path": "../../sandbox/sandbox" },
-    { "path": "../../runtime-diagnostics/invariants" }
+    { "path": "../../sandbox/sandbox" }
   ]
 }

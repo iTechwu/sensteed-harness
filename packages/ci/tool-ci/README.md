@@ -5,9 +5,9 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-tool-ci
 
-## Summary
-
 English | [中文](README.zh.md)
+
+## Summary
 
 The model-facing `ci_run` quality-gate tool over the [shell capability seam](../../shell/shell/README.md) (`ctx.shell`). It runs one or more gate commands in sequence in a target directory and returns one structured verdict: an overall result plus a per-gate record with exit code, signal, timeout/abort facts, duration, and a bounded output tail. A failed gate stops the sequence by default. Every gate runs through `ctx.shell`, so sandboxing, timeouts, and cancellation stay the shell executor responsibility; the package owns only model-facing concerns.
 
@@ -42,7 +42,7 @@ The `gates` array accepts shell command strings (for example `pnpm lint`) rather
 
 ## Stable registration
 
-Tool registration follows enablement, not backend availability: a gate that fails to run is reported as a failed gate in the structured value rather than thrown as an infrastructure error, so the model schema stays stable across provider and executor changes.
+Tool registration follows enablement, not backend availability: a gate that fails to run is reported as a failed gate in the structured value rather than thrown as an infrastructure error, so the model schema stays stable across provider and executor changes. No invariant companion is published because `ci_run` owns no state: each call resolves its gates through the shell capability seam, and the structured value is the call's only projection.
 
 ## Model Experience
 

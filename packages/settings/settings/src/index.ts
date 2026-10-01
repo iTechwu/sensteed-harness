@@ -107,7 +107,7 @@ function readLegacyDocument(home: string): Record<string, Record<string, unknown
   const path = join(home, LEGACY_STORE_FILENAME)
   if (!existsSync(path)) return {}
   try {
-    const parsed = parse(readFileSync(path, 'utf8')) as unknown
+    const parsed = parse(readFileSync(path, 'utf8'))
     return parsed !== null && typeof parsed === 'object' ? parsed as Record<string, Record<string, unknown>> : {}
   } catch {
     return {}
