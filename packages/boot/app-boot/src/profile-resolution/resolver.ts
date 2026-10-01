@@ -613,12 +613,10 @@ class ResolutionRouter {
 function internalModules(): InternalModules {
   const require = createRequire(import.meta.url)
   const requireInternal = (() => {
-    if (process.execArgv.includes('--expose-internals')) {
-      try {
-        require('internal/modules/cjs/loader')
-        return require
-      } catch {
-      }
+    try {
+      require('internal/modules/cjs/loader')
+      return require
+    } catch {
     }
     const addon = require('node-addon-require-builtin') as { requireBuiltin(moduleId: string): unknown }
     return addon.requireBuiltin.bind(addon)
