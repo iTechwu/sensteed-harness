@@ -22,7 +22,7 @@ AppFrame 生命周期持有一个 document 级模态隔离 effect。它识别设
 
 ## 后果
 
-本决策扩展了[共享原语决策](../architecture/2026-09-05-shared-client-control-primitives.zh.md)中的共享控件所有权，不替代该控件目录或保留局部控件的例外。当前弹窗按 DOM 顺序确定，不计算 z-index。自定义交互 portal 需要显式所属标记；未标记的 portal 被视为背景。在 AppFrame 之外单独使用原语时，消费方仍负责焦点隔离。会话事件、模型请求与 API 授权没有变化。
+本决策将共享控件的所有权扩展到 AppFrame 各表面，不替代各控件自身的关闭行为或保留局部控件的例外。当前弹窗按 DOM 顺序确定，不计算 z-index。自定义交互 portal 需要显式所属标记；未标记的 portal 被视为背景。在 AppFrame 之外单独使用原语时，消费方仍负责焦点隔离。会话事件、模型请求与 API 授权没有变化。
 
 ## 验证
 

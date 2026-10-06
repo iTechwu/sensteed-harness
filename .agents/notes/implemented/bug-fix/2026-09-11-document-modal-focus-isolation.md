@@ -22,7 +22,7 @@ Adding a separate focus trap to every feature dialog would duplicate lifecycle a
 
 ## Consequences
 
-This extends the ownership of shared client controls described in the [shared primitives decision](../architecture/2026-09-05-shared-client-control-primitives.md); it does not supersede that control catalog or its local-control exceptions. The active dialog follows DOM order, not computed z-index. Custom interactive portals need an explicit owner marker; unmarked portals are treated as background. Standalone primitive consumers outside AppFrame still own focus isolation. No Session event, model request or API authorization changes.
+This extends the ownership of shared client controls across AppFrame surfaces; it does not supersede each control's own close behavior or its local-control exceptions. The active dialog follows DOM order, not computed z-index. Custom interactive portals need an explicit owner marker; unmarked portals are treated as background. Standalone primitive consumers outside AppFrame still own focus isolation. No Session event, model request or API authorization changes.
 
 ## Verification
 

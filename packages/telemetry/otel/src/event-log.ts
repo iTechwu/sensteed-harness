@@ -53,7 +53,9 @@ export class EventLogReporter {
         exporter: {
           export: (records, callback) => {
             exporter.export(records, (result) => {
-              if (result.code !== ExportResultCode.SUCCESS) options.onFailure('Product telemetry export failed', result.error)
+              // sdk-logs resolves a different @opentelemetry/core build than this
+            // package, so the enum identities differ; compare numeric codes.
+              if (Number(result.code) !== Number(ExportResultCode.SUCCESS)) options.onFailure('Product telemetry export failed', result.error)
               callback(result)
             })
           },

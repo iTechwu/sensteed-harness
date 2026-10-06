@@ -187,7 +187,7 @@ export class FileSettingsProvider extends Service {
       ? state.value as Record<string, unknown>
       : {}
     const nextInput = mode === 'update' ? { ...current, ...input } : input
-    const value = state.schema(nextInput)
+    const value: unknown = state.schema(nextInput)
     state.validate?.(value)
     await this.persist(ns, value as Record<string, unknown>)
     state.value = value
@@ -198,7 +198,7 @@ export class FileSettingsProvider extends Service {
   private publish(document: Record<string, unknown>): void {
     this.sections = document
     for (const [ns, state] of this.scopes) {
-      const value = state.schema(document[ns] ?? {})
+      const value: unknown = state.schema(document[ns] ?? {})
       if (deepEqualJson(value, state.value)) continue
       state.value = value
       for (const listener of state.listeners) listener(value)

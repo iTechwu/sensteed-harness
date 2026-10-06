@@ -496,9 +496,9 @@ it.skipIf(MODE === 'record').each([1, 2])('keeps frozen headings without divider
     }
     await layout.evaluate(node => node.parentNode!.removeChild(node))
     await expectExcelLayout(excel)
-    expect(await canvas!.evaluate(node => node.isConnected)).toBe(true)
+    expect(await canvas.evaluate(node => node.isConnected)).toBe(true)
     expect(await excel.locator('.fortune-name-box').innerText()).toBe(selection)
-    await canvas!.dispose()
+    await canvas.dispose()
     expect(consoleErrors.pageErrors).toEqual([])
   } finally {
     try { await browser?.close() } finally { await scaffold.close() }

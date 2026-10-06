@@ -194,7 +194,7 @@ describe('web e2e: shortcut reference', () => {
         expect(await dialog.getByRole('listitem').textContent()).toContain(locale === 'zh-CN' ? '展开／收起左侧栏' : 'Toggle left sidebar')
       }
       await page.keyboard.press(`${key}+Alt+Comma`)
-      expect(await referenceNode!.evaluate(element => element.isConnected)).toBe(true)
+      expect(await referenceNode.evaluate(element => element.isConnected)).toBe(true)
       expect(await page.getByRole('dialog').count()).toBe(2)
       expect(await page.getByRole('searchbox').inputValue()).toBe('toggle left sidebar')
       expect(await searchInput.evaluate(element => getComputedStyle(element).outlineStyle)).toBe('none')

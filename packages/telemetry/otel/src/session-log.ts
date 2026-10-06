@@ -153,7 +153,9 @@ class SessionLogProcessor implements LogRecordProcessor {
       }
       try {
         this.exporter.export(records, (result) => {
-          finish(result.code === ExportResultCode.SUCCESS
+          // sdk-logs resolves a different @opentelemetry/core build than this
+          // package, so the enum identities differ; compare numeric codes.
+          finish(Number(result.code) === Number(ExportResultCode.SUCCESS)
             ? undefined : result.error ?? new Error('Session log HTTP export failed'))
         })
       } catch (error) {
