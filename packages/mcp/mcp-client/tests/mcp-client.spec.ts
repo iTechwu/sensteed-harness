@@ -10,7 +10,7 @@ import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { PostToolDecision } from '@deepseek-ai/dsh-tools'
-import { publicToolName, syncTools, type ToolBridgeOptions } from '@deepseek-ai/dsh-mcp-client/src/tools.ts'
+import { createMcpToolDefinition, publicToolName, syncTools, type ToolBridgeOptions } from '@deepseek-ai/dsh-mcp-client/src/tools.ts'
 import { createTransport } from '@deepseek-ai/dsh-mcp-client/src/transport.ts'
 import type { Config } from '@deepseek-ai/dsh-mcp-client'
 
@@ -192,6 +192,36 @@ describe('syncTools', () => {
     // Raw names are NOT registered.
     expect(ctx.tools.get('greet')).toBeUndefined()
     expect(ctx.tools.get('add')).toBeUndefined()
+  })
+
+  it('skips tools with non-lossless input schemas while retaining valid tools', async () => {
+    const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    const client = createMockClient([
+      {
+        name: 'malformed',
+        inputSchema: { type: 'object', properties: { broken: undefined } },
+      },
+      { name: 'valid', inputSchema: { type: 'object', properties: {} } },
+    ])
+
+    const disposers = await syncTools(client as never, ctx, defaultOpts, new Map())
+
+    expect(disposers.size).toBe(1)
+    expect(ctx.tools.get('mcp__srv__malformed')).toBeUndefined()
+    expect(ctx.tools.get('mcp__srv__valid')).toBeDefined()
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      expect.stringContaining('skipped tool "malformed" with invalid input schema'),
+    )
+  })
+
+  it('rejects a non-lossless input schema when constructing a tool definition', () => {
+    expect(() => createMcpToolDefinition(ctx, {
+      name: 'mcp__srv__malformed',
+      rawName: 'malformed',
+      description: '',
+      inputSchema: { type: 'object', properties: { broken: undefined } },
+      call: async () => ({ content: [] }),
+    })).toThrow('input schema must be lossless JSON')
   })
 
   it('lets two servers publish the same raw name side by side', async () => {

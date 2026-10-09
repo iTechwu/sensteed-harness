@@ -22,7 +22,7 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { ToolDefinition, ToolExecution, ToolExecutionResult } from '@deepseek-ai/dsh-tools'
 import { assertSupportedJsonSchema } from '@deepseek-ai/dsh-tools'
 import type { JsonSchemaNode } from '@deepseek-ai/dsh-tools'
-import type { JsonValue } from '@deepseek-ai/dsh-util-values'
+import { snapshotJsonValue, type JsonValue } from '@deepseek-ai/dsh-util-values'
 
 /** Resolved options relevant to tool bridging. */
 export interface ToolBridgeOptions {
@@ -128,18 +128,22 @@ export async function syncTools(
         `mcp-client(${opts.serverName}): server listed tool "${tool.name}" more than once — invalid tool list`,
       )
     }
-    definitions.set(publicName, createMcpToolDefinition(ctx, {
-      name: publicName,
-      rawName: tool.name,
-      description: tool.description ?? '',
-      inputSchema: tool.inputSchema,
-      outputSchema: tool.outputSchema,
-      taskRequired: tool.execution?.taskSupport === 'required',
-      call: (args, execution) => client.callTool(
-        { name: tool.name, arguments: args },
-        { signal: execution.signal, timeout: opts.toolCallTimeoutMs, toolDefinition: tool },
-      ),
-    }))
+    try {
+      definitions.set(publicName, createMcpToolDefinition(ctx, {
+        name: publicName,
+        rawName: tool.name,
+        description: tool.description ?? '',
+        inputSchema: tool.inputSchema,
+        outputSchema: tool.outputSchema,
+        taskRequired: tool.execution?.taskSupport === 'required',
+        call: (args, execution) => client.callTool(
+          { name: tool.name, arguments: args },
+          { signal: execution.signal, timeout: opts.toolCallTimeoutMs, toolDefinition: tool },
+        ),
+      }))
+    } catch (error) {
+      ctx.logger.warn(`mcp-client(${opts.serverName}): skipped tool "${tool.name}" with invalid input schema: ${String(error)}`)
+    }
   }
 
   // Phase 2: swap generations.
@@ -227,11 +231,15 @@ export function createMcpToolDefinition(
   options: McpToolDefinitionOptions,
 ): ToolDefinition {
   const { name, rawName, description, inputSchema } = options
+  const detachedInputSchema = snapshotJsonValue(inputSchema)
+  if (detachedInputSchema === undefined) {
+    throw new Error(`MCP tool "${rawName}" input schema must be lossless JSON`)
+  }
   const projections = new WeakMap<ToolExecution, PreparedProjection>()
   return {
     name,
     description,
-    parameters: inputSchema,
+    parameters: detachedInputSchema,
     output: createOutput(rawName, supportedOutputSchema(options.outputSchema)),
     execute: createExecutor(ctx, options, projections),
     projectContent(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>) {
