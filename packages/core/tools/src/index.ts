@@ -1009,7 +1009,9 @@ export class ToolRuntime extends Service {
     const view = this.view(scope)
     const mode = this.modeFor(scope)
     if (mode === 'native') {
-      const schemas = [...view.visible.values()].map(definition => this.schemaOf(definition, false))
+      const schemas = [...view.visible.values()]
+        .map(definition => this.wireSchemaOf(definition))
+        .filter((schema): schema is ToolSchema => schema !== undefined)
       return { schemas, knownNames: [...view.knownNames] }
     }
     // Validate the runtime language BEFORE projecting schemas: schemaOf reads
@@ -1018,7 +1020,9 @@ export class ToolRuntime extends Service {
     // renderer-table rejection the canonical assembly-time error for a
     // language with no SDK renderer.
     this.requirePtcRuntime(mode)
-    const schemas = [...view.visible.values()].map(definition => this.schemaOf(definition, false))
+    const schemas = [...view.visible.values()]
+      .map(definition => this.wireSchemaOf(definition))
+      .filter((schema): schema is ToolSchema => schema !== undefined)
     if (mode === 'ptc') {
       return {
         schemas: schemas.filter(schema => schema.name === RUN_CODE_NAME),
@@ -1290,6 +1294,25 @@ export class ToolRuntime extends Service {
       description,
       parameters: detached,
       ...deferLoading === true ? { deferLoading } : {},
+    }
+  }
+
+  /**
+   * Lossless-JSON projection for the wire schemas handed to prompt assembly.
+   * The request-header session event embeds these schemas, and its append
+   * guard rejects any non-JSON value — one unserializable tool parameter
+   * would otherwise fail every agent turn at `request/header`. A definition
+   * that cannot project cleanly is skipped with a named warning (mirroring
+   * the MCP registration gate) so one bad tool cannot take down the session.
+   * @param definition - the registered definition to project.
+   * @returns the projected schema, or `undefined` when the definition is skipped.
+   */
+  private wireSchemaOf(definition: ToolDefinition): ToolSchema | undefined {
+    try {
+      return this.schemaOf(definition, true)
+    } catch (error) {
+      this.ctx.logger.warn(`tools: skipped tool "${definition.name}" with non-lossless-JSON parameters: ${errorMessage(error)}`)
+      return undefined
     }
   }
 
