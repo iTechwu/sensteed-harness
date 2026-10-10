@@ -13,8 +13,10 @@ export interface Config extends ProtocolConfig {
 }
 export const Config = z.object({
   ...deepSeekConfigFields,
-  apiKeyEnv: z.string().role('credential-ref').default('DEEPSEEK_API_KEY').volatile(),
+  apiKeyEnv: z.string().role('credential-ref').volatile(),
 })
+/** Placeholder reference for transport-level constructions that never resolve credentials. */
+export const UNCOMPOSED_API_KEY_REF = 'DSH_UNCOMPOSED_API_KEY'
 /** Plain deployment inputs for the API-key provider. */
 export type Options = ProtocolOptions & { apiKeyEnv?: string }
 /** Endpoint and credential reference captured from the same configuration generation. */
@@ -35,5 +37,7 @@ export function plainOptions(config: Config): Options {
  * @returns validated endpoint facts and the matching credential reference.
  */
 export function resolveAdapterOptions(config: Options, environment?: LaunchEnvironmentSnapshot): ResolvedDeepSeekOptions {
-  return { ...resolveProtocolOptions(config, environment), apiKeyEnv: credentialRef(config.apiKeyEnv ?? 'DEEPSEEK_API_KEY') }
+  // The sentinel only ever reaches a resolve call through a composition bug: the
+  // plugin's apply rejects a composition without `apiKeyEnv` before any request.
+  return { ...resolveProtocolOptions(config, environment), apiKeyEnv: credentialRef(config.apiKeyEnv ?? UNCOMPOSED_API_KEY_REF) }
 }

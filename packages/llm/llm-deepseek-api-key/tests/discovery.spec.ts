@@ -9,7 +9,7 @@ it.each([undefined, ''])('hides models without an API key: %j', async (key) => {
   const ctx = new Context()
   try {
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(ApiKey, {})
+    await ctx.plugin(ApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     expect(await ctx.llm.listModels('deepseek-official')).toEqual([])
   } finally {
     await ctx.fiber.dispose()
@@ -22,7 +22,7 @@ it('advertises configured models with an API key', async () => {
   const ctx = new Context()
   try {
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(ApiKey, {})
+    await ctx.plugin(ApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     expect(await ctx.llm.listModels('deepseek-official')).toEqual(expect.arrayContaining([
       expect.objectContaining({ provider: 'deepseek-official', id: 'deepseek-flash' }),
     ]))
@@ -37,7 +37,7 @@ it('reports malformed credentials during discovery', async () => {
   const ctx = new Context()
   try {
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(ApiKey, {})
+    await ctx.plugin(ApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     await expect(ctx.llm.listModels('deepseek-official')).rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
   } finally {
     await ctx.fiber.dispose()

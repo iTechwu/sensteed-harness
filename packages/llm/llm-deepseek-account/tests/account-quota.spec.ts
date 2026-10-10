@@ -29,7 +29,7 @@ async function routeFor(token: string | undefined, provider: 'deepseek-account' 
     resolveToken: async (_baseURL: string): Promise<string | undefined> => token,
     rejectToken: async (_token: string): Promise<void> => {},
   } as DeepSeekAccount)
-  await ctx.plugin(provider === 'deepseek-account' ? Account : ApiKey)
+  if (provider === 'deepseek-account') { await ctx.plugin(Account) } else { await ctx.plugin(ApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY' }) }
   return ctx
 }
 

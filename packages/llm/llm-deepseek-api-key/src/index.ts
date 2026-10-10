@@ -31,6 +31,12 @@ export function apply(ctx: Context, config: Config): void {
       launchEnvironmentOf(ctx),
     )
   }
+  // Composition-level loud failure: without a composed reference the provider can never
+  // resolve a key, and the sentinel fallback in resolveAdapterOptions must never leak.
+  if (config.apiKeyEnv.get() === undefined) {
+    throw new Error('llm-deepseek: composition supplies no credential reference (apiKeyEnv); '
+      + 'the native DeepSeek default was removed')
+  }
   options()
   const resolveApiKey = async (connection: ResolvedDeepSeekOptions): Promise<string> => {
     const ref = connection.apiKeyEnv

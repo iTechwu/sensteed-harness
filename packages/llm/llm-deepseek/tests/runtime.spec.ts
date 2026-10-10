@@ -60,7 +60,7 @@ async function harness(baseURL: string, config: object = {}) {
   const ctx = new Context()
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(DeepSeekLlmApiExtensionRegistry)
-  await ctx.plugin(LlmDeepSeek, { baseURL, ...config })
+  await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL, apiKeyEnv: 'DEEPSEEK_API_KEY', ...config })
   return ctx
 }
 
@@ -1753,7 +1753,7 @@ describe('plugin registration and config', () => {
     const server = await mockServer([])
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    const fiber = await ctx.plugin(LlmDeepSeek, {
+    const fiber = await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: server.url,
     })
     expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
@@ -1771,7 +1771,7 @@ describe('plugin registration and config', () => {
   it('registers retryPolicy from the provider config', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       retryPolicy: {
         mode: 'always',
@@ -1791,7 +1791,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'catalog-fixture-key')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: 'http://127.0.0.1:1' })
     expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toEqual([
       { provider: 'deepseek-official', id: 'deepseek-flash', name: 'DeepSeek-V4.1-Flash', inputModalities: ['text', 'image'] },
@@ -1827,7 +1827,7 @@ describe('plugin registration and config', () => {
   it('keeps deepseek-v4-pro available with its V4 capabilities', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: 'http://127.0.0.1:1' })
     const info = await ctx.llm.resolveModelInfo('deepseek-official', 'deepseek-v4-pro')
     expect(info).toMatchObject({
       id: 'deepseek-v4-pro',
@@ -1841,7 +1841,7 @@ describe('plugin registration and config', () => {
   it.each(['off', 'low', 'max'] as const)('uses the configured %s reasoning default', async (effort) => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       reasoningEffort: effort,
     })
@@ -1862,7 +1862,7 @@ describe('plugin registration and config', () => {
   it('accepts off as the default when thinking is deployment-disabled', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       thinking: 'disabled',
       reasoningEffort: 'off',
@@ -1885,7 +1885,7 @@ describe('plugin registration and config', () => {
     async (reasoningEffort) => {
       const ctx = new Context()
       await ctx.plugin(LlmRuntime)
-      await expect(ctx.plugin(LlmDeepSeek, {
+      await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
         baseURL: 'http://127.0.0.1:1',
         thinking: 'disabled',
         reasoningEffort,
@@ -1920,7 +1920,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'catalog-fixture-key')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    LlmDeepSeek.apply(ctx, LlmDeepSeek.Config({ baseURL: 'http://127.0.0.1:1' }))
+    LlmDeepSeek.apply(ctx, LlmDeepSeek.Config({ baseURL: 'http://127.0.0.1:1', apiKeyEnv: 'DEEPSEEK_API_KEY' }))
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toEqual([
       { provider: 'deepseek-official', id: 'deepseek-flash', name: 'DeepSeek-V4.1-Flash', inputModalities: ['text', 'image'] },
       {
@@ -1938,7 +1938,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'catalog-fixture-key')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       models: [
         { id: 'private-fast', contextWindow: 32_000 },
@@ -1973,7 +1973,7 @@ describe('plugin registration and config', () => {
   it('uses exact model capacity before the adapter-wide default', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       defaultContextWindow: 256_000,
       models: [
@@ -1993,7 +1993,7 @@ describe('plugin registration and config', () => {
   it('allows an explicit empty model catalog', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       models: [],
     })
@@ -2018,7 +2018,7 @@ describe('plugin registration and config', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await expect(Reflect.apply(ctx.plugin.bind(ctx), undefined, [LlmDeepSeek, {
-      baseURL: 'http://127.0.0.1:1', models: [...models],
+      baseURL: 'http://127.0.0.1:1', apiKeyEnv: 'DEEPSEEK_API_KEY', models: [...models],
     }])).rejects.toThrow(message)
     expect(ctx.llm.listProviders()).toEqual([])
   })
@@ -2041,7 +2041,7 @@ describe('plugin registration and config', () => {
 
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       models: [legacyModel],
     })).rejects.toThrow(/imageDetail is no longer supported/)
@@ -2107,7 +2107,7 @@ describe('plugin registration and config', () => {
     await ctx.plugin(LlmRuntime)
     expect(() => {
       LlmDeepSeek.apply(ctx, LlmDeepSeek.Config({
-        baseURL: 'http://127.0.0.1:1',
+        baseURL: 'http://127.0.0.1:1', apiKeyEnv: 'DEEPSEEK_API_KEY',
         models: [{ id: 'invalid-context', contextWindow: 0 }],
       }))
     }).toThrow(/contextWindow/)
@@ -2122,7 +2122,7 @@ describe('plugin registration and config', () => {
 
       const ctx = new Context()
       await ctx.plugin(LlmRuntime)
-      await expect(ctx.plugin(LlmDeepSeek, {
+      await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
         baseURL: 'http://127.0.0.1:1',
         defaultContextWindow,
       })).rejects.toThrow(/defaultContextWindow/)
@@ -2138,7 +2138,7 @@ describe('plugin registration and config', () => {
 
       const ctx = new Context()
       await ctx.plugin(LlmRuntime)
-      await expect(ctx.plugin(LlmDeepSeek, {
+      await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
         baseURL: 'http://127.0.0.1:1',
         maxTokens,
       })).rejects.toThrow(/maxTokens/)
@@ -2188,7 +2188,7 @@ describe('plugin registration and config', () => {
 
       const ctx = new Context()
       await ctx.plugin(LlmRuntime)
-      await expect(ctx.plugin(LlmDeepSeek, {
+      await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
         baseURL: 'http://127.0.0.1:1',
         maxRequestFilesBytes,
       })).rejects.toThrow(/maxRequestFilesBytes/)
@@ -2204,7 +2204,7 @@ describe('plugin registration and config', () => {
 
       const ctx = new Context()
       await ctx.plugin(LlmRuntime)
-      await expect(ctx.plugin(LlmDeepSeek, {
+      await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
         baseURL: 'http://127.0.0.1:1',
         maxInlineRequestImageBytes,
       })).rejects.toThrow(/maxInlineRequestImageBytes/)
@@ -2217,7 +2217,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_BASE_URL', 'http://127.0.0.1:1')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {})
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
   })
 
@@ -2225,7 +2225,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', '')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: 'http://127.0.0.1:1' })
     expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toEqual([])
     const first = await assemble(ctx, { model: 'deepseek-flash', messages: [] })
@@ -2247,7 +2247,7 @@ describe('plugin registration and config', () => {
     const server = await mockServer([{ kind: 'sse', events: textEvents }])
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, { baseURL: server.url })
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: server.url })
     await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })
     expect(server.headers[0]?.['x-api-key']).toBe('ambient-key')
   })
@@ -2256,7 +2256,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', '')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: 'http://127.0.0.1:1' })
     const result = await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })
     expect(result.finish).toMatchObject({ kind: 'error', failure: { code: 'MISSING_CREDENTIAL' } })
   })
@@ -2276,7 +2276,7 @@ describe('plugin registration and config', () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(LlmDeepSeek, {})
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     await assemble(ctx,{ model: 'deepseek-v4-flash', messages: [] })
     expect(server.requests).toHaveLength(1)
   })
@@ -2306,7 +2306,7 @@ describe('plugin registration and config', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     // Registration succeeds; no call is made (would hit api.deepseek.com).
-    await ctx.plugin(LlmDeepSeek, {})
+    await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
   })
 
@@ -2340,11 +2340,11 @@ describe('plugin registration and config', () => {
 
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       streamIdleTimeoutMs: 0,
     })).rejects.toThrow(/streamIdleTimeoutMs/)
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       streamIdleTimeoutMs: MAX_TIMER_DELAY_MS + 1,
     })).rejects.toThrow(/streamIdleTimeoutMs/)
@@ -2358,11 +2358,11 @@ describe('plugin registration and config', () => {
 
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       filesApiTimeoutMs: 0,
     })).rejects.toThrow(/filesApiTimeoutMs/)
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       filesApiTimeoutMs: MAX_TIMER_DELAY_MS + 1,
     })).rejects.toThrow(/filesApiTimeoutMs/)
@@ -2374,7 +2374,7 @@ describe('plugin registration and config', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
 
-    await expect(ctx.plugin(LlmDeepSeek, {
+    await expect(ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',
       baseURL: 'http://127.0.0.1:1',
       retryPolicy: { mode: 'normal', maxRetries: -1 },
     })).rejects.toThrow(/retryPolicy/)

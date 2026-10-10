@@ -129,7 +129,7 @@ async function boot(dir: string, config: object): Promise<Harness> {
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(StaticAttachmentStore)
   await ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })
-  configurations.set(ctx, await liveConfig(ctx, LlmDeepSeek, config))
+  configurations.set(ctx, await liveConfig(ctx, LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY', ...config }))
   return { ctx }
 }
 

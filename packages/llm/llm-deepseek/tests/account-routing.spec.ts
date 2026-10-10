@@ -28,7 +28,7 @@ async function harness() {
     await ctx.plugin(plugin)
   }
   await ctx.plugin(AgentLoop, { agents: [] })
-  await ctx.plugin(DeepSeek, {})
+  await ctx.plugin(DeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
   await ctx.plugin(AccountProvider, {})
   return ctx
 }
@@ -47,7 +47,7 @@ it('never falls back to an API key while signed out', async () => {
   const ctx = new Context()
   contexts.push(ctx)
   await ctx.plugin(LlmRuntime)
-  await ctx.plugin(DeepSeek, {})
+  await ctx.plugin(DeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
   await ctx.plugin(AccountProvider, {})
   const fetch = vi.spyOn(globalThis, 'fetch')
   const result = await assemble(ctx, { provider: 'deepseek-account', model: 'deepseek-v4-flash', messages: [] })
@@ -162,7 +162,7 @@ it('never borrows an account token for a missing API key', async () => {
   const resolveToken = vi.fn(async (_url: string) => 'fixture-account-token')
   ctx.provide('deepseekAccount', { resolveToken: (url: string): Promise<string | undefined> => resolveToken(url) } as DeepSeekAccount)
   await ctx.plugin(LlmRuntime)
-  await ctx.plugin(DeepSeek, {})
+  await ctx.plugin(DeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
   await ctx.plugin(AccountProvider, {})
   const fetch = vi.spyOn(globalThis, 'fetch')
   const result = await assemble(ctx, { provider: 'deepseek-official', model: 'deepseek-v4-flash', messages: [] })
@@ -178,7 +178,7 @@ it('propagates account sign-out to the HTTP request signal', async () => {
   const started = Promise.withResolvers<AbortSignal>()
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
     const signal = init!.signal!
-    expect(new Headers(init!.headers).get('x-dsh-auth-token')).toBe('fixture-account-token')
+    expect(new Headers(init!.headers).get('x-api-key')).toBe('fixture-account-token')
     started.resolve(signal)
     return new Promise<Response>((_resolve, reject) => {
       signal.addEventListener('abort', () => { reject(new Error('request aborted', { cause: signal.reason })) }, { once: true })

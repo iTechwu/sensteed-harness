@@ -1,9 +1,9 @@
 /**
  * Register a DeepSeek-backed provider in `ctx.web`. It calls the Anthropic-compatible Messages API
- * with native `web_search_20250305`. A search initiated by a Session on the DeepSeek account route
- * authenticates with the account token when the account service allows the search endpoint;
- * every other search reuses `DEEPSEEK_API_KEY`. The provider does not reuse `DEEPSEEK_BASE_URL`;
- * auxiliary search has its own endpoint configuration.
+ * with native `web_search_20250305`. A search initiated by a Session on the account route
+ * authenticates with the provisioned gateway key when the account service allows the search
+ * endpoint; every other search reuses the composed `apiKeyEnv` credential. The provider does not
+ * reuse `DEEPSEEK_BASE_URL`; auxiliary search has its own endpoint configuration.
  * @module @deepseek-ai/dsh-web-search-deepseek
  */
 import type { Volatile } from '@deepseek-ai/cordis'
@@ -43,13 +43,11 @@ export const name = 'web-search-deepseek'
 /** The web seam this provider registers into. */
 export const inject = ['web']
 
-const DEFAULT_API_KEY_ENV = 'DEEPSEEK_API_KEY'
-
 /** Plugin config (all optional — `apply` fills env-var and constant defaults). */
 export interface Config {
   /** Literal DeepSeek API key; prefer {@link apiKeyEnv} so no secret enters configuration files. */
   apiKey: Volatile<string | undefined>
-  /** Credential reference resolved for each search; defaults to `DEEPSEEK_API_KEY`. */
+  /** Credential reference resolved for each search; supplied by composition. */
   apiKeyEnv: Volatile<string>
   /** Anthropic-compatible endpoint base; `/messages` is appended. */
   baseURL: Volatile<string | undefined>
@@ -65,7 +63,7 @@ export interface Config {
 
 export const Config = z.object({
   apiKey: z.string().role('secret').volatile(),
-  apiKeyEnv: z.string().role('credential-ref').default(DEFAULT_API_KEY_ENV).volatile(),
+  apiKeyEnv: z.string().role('credential-ref').volatile(),
   // Declared here rather than only at the use site: a configuration surface
   // renders the resolved section, so a default the schema does not carry reads
   // there as no value at all.
@@ -99,7 +97,11 @@ export const WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE = 'web-search-deepseek'
 function resolveOptions(
   ctx: Context, config: { [K in keyof Config]: ReturnType<Config[K]['get']> },
 ): DeepSeekSearchProviderOptions {
-  const apiKeyEnv = credentialRef(config.apiKeyEnv)
+  if (config.apiKeyEnv === undefined && (config.apiKey === undefined || config.apiKey.length === 0)) {
+    throw new Error('web-search-deepseek: composition supplies neither a literal apiKey nor a credential'
+      + ' reference (apiKeyEnv); the native DeepSeek default was removed')
+  }
+  const apiKeyEnv = credentialRef(config.apiKeyEnv ?? 'DSH_UNCOMPOSED_API_KEY')
   const literalApiKey = config.apiKey !== undefined && config.apiKey.length > 0
     ? config.apiKey
     : undefined

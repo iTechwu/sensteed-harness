@@ -34,9 +34,9 @@ export function apply(ctx: Context, config: Config): void {
   const resolveAuth = async (connection: ResolvedDeepSeekOptions): Promise<DeepSeekRequestAuth> => {
     const account = ctx.get('deepseekAccount')
     const token = await account?.resolveToken(connection.baseURL)
-    if (token === undefined) throw new LlmError('Sign in to DeepSeek to use the account provider. The request destination must allow account authentication.', 'ACCOUNT_SIGN_IN_REQUIRED')
+    if (token === undefined) throw new LlmError('Sign in through the account provider to use this route. The request destination must be the account provisioned gateway.', 'ACCOUNT_SIGN_IN_REQUIRED')
     return {
-      headers: { 'x-dsh-auth-token': token },
+      headers: { 'x-api-key': token },
       onRequestError: async (error) => {
         if (!(error instanceof LlmError)) return error
         if (error.code === QUOTA_EXCEEDED_CODE) {

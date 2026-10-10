@@ -305,7 +305,11 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
     const token = resolveAccountToken === undefined
       ? undefined
       : await resolveCredential(() => resolveAccountToken(endpoint), signal)
-    if (token !== undefined && token.length > 0) return { kind: 'account', headers: { 'x-dsh-auth-token': token } }
+    // The gateway account credential is an API key, so both branches send the same
+    // header pair; `x-api-key` is authoritative and `Bearer` covers proxies.
+    if (token !== undefined && token.length > 0) {
+      return { kind: 'account', headers: { 'x-api-key': token, 'authorization': `Bearer ${token}` } }
+    }
     const apiKey = await this.apiKey(options, signal)
     // Official DeepSeek expects `x-api-key`; an Anthropic-compatible proxy
     // may expect `Authorization: Bearer` — send both so either resolves.
@@ -324,7 +328,7 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
     const { resolveApiKey } = options
     const resolved = resolveApiKey === undefined ? undefined : await resolveCredential(resolveApiKey, signal)
     if (resolved !== undefined && resolved.length > 0) return resolved
-    const ref = options.apiKeyEnv ?? 'DEEPSEEK_API_KEY'
+    const ref = options.apiKeyEnv ?? '(composition supplies no credential reference)'
     throw new WebError(
       `DeepSeek search has no API key for "${ref}"; store it through the credentials service`
       + ' (the web Models page writes it), export it in the launching environment, or set a literal'

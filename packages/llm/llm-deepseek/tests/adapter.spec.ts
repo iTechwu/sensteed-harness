@@ -280,7 +280,7 @@ describe('Cordis provider composition', () => {
     const { ctx, home } = await context()
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     await ctx.plugin(LlmRuntime)
-    await ctx.plugin(Messages, { baseURL: http.url })
+    await ctx.plugin(Messages, { baseURL: http.url, apiKeyEnv: 'DEEPSEEK_API_KEY' })
     const model = 'deepseek-flash'
     const price = () => ctx.llm.imageRequestPricing('deepseek-official', model)!
     const dummy = { attachmentId: AttachmentId(`sha256:${'a'.repeat(64)}`), width: 1, height: 1, bytes: 3, mediaType: 'image/png' as const }
@@ -564,7 +564,7 @@ describe('Cordis provider composition', () => {
     vi.stubEnv('DEEPSEEK_BASE_URL', http.url)
     vi.stubEnv('DEEPSEEK_API_KEY', 'env-key')
     await ctx.plugin(LlmRuntime)
-    const fiber = ctx.plugin(Messages)
+    const fiber = ctx.plugin(Messages, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     await fiber
     await chunks(ctx.llm.stream(options()))
     expect(http.requests[0]?.headers['x-api-key']).toBe('env-key')
@@ -593,12 +593,13 @@ it.each([
     resolveToken: (url: string) => Promise.resolve(url === 'https://api.deepseek.com' ? 'account-token' : undefined),
   } as DeepSeekAccount)
   await ctx.plugin(LlmRuntime)
-  await ctx.plugin(expected === 'account-token' ? AccountProvider : Messages, { baseURL })
+  await ctx.plugin(expected === 'account-token' ? AccountProvider : Messages, { baseURL, apiKeyEnv: 'DEEPSEEK_API_KEY' })
   const request = vi.fn<typeof fetch>((_input, init) => {
     const headers = new Headers(init?.headers)
     expect(headers.has('authorization')).toBe(false)
-    expect(headers.get('x-api-key')).toBe(expected === 'account-token' ? null : expected)
-    expect(headers.get('x-dsh-auth-token')).toBe(expected === 'account-token' ? expected : null)
+    // Both credential routes authenticate the gateway with `x-api-key`.
+    expect(headers.get('x-api-key')).toBe(expected)
+    expect(headers.get('x-dsh-auth-token')).toBeNull()
     expect(init?.redirect).toBe('error')
     return Promise.resolve(new Response(sse(textEvents), { status: 200 }))
   })

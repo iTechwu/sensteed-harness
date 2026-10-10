@@ -81,7 +81,12 @@ export function apply(ctx: Context, config: DesktopEntryConfig): void {
   const resolveApiKey = async (): Promise<string> => {
     // The credential reference resolves per request; composition keeps it
     // pinned so a rejected settings generation cannot move the endpoint's key.
-    const ref = credentialRef(ownedFacts?.apiKeyEnv ?? config.apiKeyEnv.get())
+    const refName = ownedFacts?.apiKeyEnv ?? config.apiKeyEnv.get()
+    if (refName === undefined) {
+      throw new LlmError('llm-deepseek: composition supplies no credential reference (apiKeyEnv); '
+        + 'the native DeepSeek default was removed', 'MISSING_CREDENTIAL')
+    }
+    const ref = credentialRef(refName)
     const credentials = ctx.get('credentials')
     if (credentials !== undefined) {
       const hit = await credentials.resolve(ref)
@@ -104,14 +109,15 @@ export function apply(ctx: Context, config: DesktopEntryConfig): void {
   ctx.llm.registerConfigurableProviders([
     { provider: PROVIDER, displayName: 'DeepSeek', settingsNs: ctx.fiber.entry?.options.id ?? NS, settingsPath: [] },
   ])
-  // Account sign-in wins per endpoint when the desktop account service can
-  // mint a token; otherwise the route falls back to the API-key credential.
+  // The gateway account credential is an API key: account sign-in wins per endpoint
+  // when the account service has provisioned for it; otherwise the API-key route falls
+  // back to the composed credential reference.
   registerDeepSeekProvider(ctx, PROVIDER, {
     options,
     providerName: 'DeepSeek',
     resolveAuth: async (connection): Promise<DeepSeekRequestAuth> => {
       const accountToken = await ctx.get('deepseekAccount')?.resolveToken(connection.baseURL)
-      if (accountToken !== undefined) return { headers: { 'x-dsh-auth-token': accountToken } }
+      if (accountToken !== undefined) return { headers: { 'x-api-key': accountToken } }
       return { headers: { 'x-api-key': await resolveApiKey() } }
     },
     discoverModels: (provider) => {

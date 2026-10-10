@@ -81,6 +81,7 @@ async function loadComposition(
     '- id: llm-deepseek',
     "  name: '@deepseek-ai/dsh-llm-deepseek-api-key'",
     '  config:',
+    '    apiKeyEnv: DEEPSEEK_API_KEY',
     `    baseURL: ${JSON.stringify(options.baseURL)}`,
     '',
   ].join('\n'))
@@ -207,7 +208,7 @@ describe('llm-deepseek real dynamic composition', () => {
     expect(serverA.headers[0]?.['x-deepseek-harness-user-id']).toBe(getOrCreateAnonymousUserId())
 
     // External edits, exactly as a user or the web UI would leave them on disk.
-    await writeFile(settingsPath, JSON.stringify([{ id: NS, config: { baseURL: serverB.url } }]))
+    await writeFile(settingsPath, JSON.stringify([{ id: NS, config: { baseURL: serverB.url, apiKeyEnv: 'DEEPSEEK_API_KEY' } }]))
     await vi.waitFor(() => {
       expect((ctx.settings.describe().find(row => row.ns === NS)!.value as { baseURL?: string }).baseURL).toBe(serverB.url)
     }, { timeout: 5000 })

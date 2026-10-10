@@ -470,7 +470,9 @@
     - id: web-search-deepseek
       name: '@deepseek-ai/dsh-web-search-deepseek'
       config:
-        apiKeyEnv: DEEPSEEK_API_KEY
+        # Must stay consistent with the llm-deepseek row: same provisioned gateway key.
+        apiKeyEnv: SENSTEED_GATEWAY_API_KEY
+        baseURL: https://ai.hozonauto.com/api/anthropic/v1
 
     - id: web-fetch-http
       name: '@deepseek-ai/dsh-web-fetch-http'
@@ -514,12 +516,16 @@
     - id: fs-sandbox
       name: '@deepseek-ai/dsh-fs-sandbox'
 
-    # The native DeepSeek adapter. No key or endpoint is inlined: both resolve per
-    # request from the `llm-deepseek:` settings section over this entry, with the
-    # key coming from the credential store below. Thinking defaults are a deployment
-    # choice.
+    # The Sensteed gateway adapter. Key and endpoint are pinned by composition: the
+    # key is the Feishu-provisioned credential (`SENSTEED_GATEWAY_API_KEY`, written
+    # by the deepseek-account row above), the endpoint is the gateway Messages root.
+    # `gatewayApiOrigin` on that row must stay consistent with this `baseURL`.
     - id: llm-deepseek
       name: '@deepseek-ai/dsh-llm-deepseek-api-key'
+      config:
+        connectionPolicy: composition
+        apiKeyEnv: SENSTEED_GATEWAY_API_KEY
+        baseURL: https://ai.hozonauto.com/api/anthropic/v1
 
     - id: llm-deepseek-account
       name: '@deepseek-ai/dsh-llm-deepseek-account'

@@ -108,10 +108,10 @@ export const Config = z.object(deepSeekConfigFields)
 /** The desktop combined entry re-adds provider credential selection on top of the shared fields. */
 export const DesktopEntryConfig = z.object({
   ...deepSeekConfigFields,
-  apiKeyEnv: z.string().role('credential-ref').default('DEEPSEEK_API_KEY').volatile(),
+  apiKeyEnv: z.string().role('credential-ref').volatile(),
 })
 export interface DesktopEntryConfig extends Config {
-  /** Credential reference (environment-variable name) resolved per request; defaults to `DEEPSEEK_API_KEY`. */
+  /** Credential reference (environment-variable name) resolved per request; supplied by composition. */
   apiKeyEnv: Volatile<string>
 }
 

@@ -247,9 +247,8 @@ describe('DeepSeekSearchProvider account authentication', () => {
     const { url, headers } = first()
     expect(resolveAccountToken).toHaveBeenCalledWith(url)
     expect(resolveApiKey).not.toHaveBeenCalled()
-    expect(headers['x-dsh-auth-token']).toBe('account-token')
-    expect(headers).not.toHaveProperty('x-api-key')
-    expect(headers).not.toHaveProperty('authorization')
+    expect(headers['x-api-key']).toBe('account-token')
+    expect(headers.authorization).toBe('Bearer account-token')
   })
 
   it.each([undefined, ''])('falls back to the API key when the account resolves %j', async (token) => {
@@ -443,9 +442,9 @@ describe('DeepSeekSearchProvider error handling', () => {
       }))
   })
 
-  it('uses the default credential reference when no resolver is configured', async () => {
-    await expect(searchProvider({ ...options, apiKey: '' }).search({ query: 'q' }))
-      .rejects.toThrow('DeepSeek search has no API key for "DEEPSEEK_API_KEY"')
+  it('names the composed credential reference when no resolver is configured', async () => {
+    await expect(searchProvider({ ...options, apiKey: '', apiKeyEnv: 'CUSTOM_SEARCH_KEY' }).search({ query: 'q' }))
+      .rejects.toThrow('DeepSeek search has no API key for "CUSTOM_SEARCH_KEY"')
   })
 
   it('observes cancellation triggered synchronously by credential resolution', async () => {
@@ -615,7 +614,7 @@ describe('web-search-deepseek plugin registration', () => {
     await fiber.dispose()
   })
 
-  it('falls back to the env key and defaults when config omits them', async () => {
+  it('resolves the composed credential reference through the launching environment', async () => {
     const prev = process.env.DEEPSEEK_API_KEY
     process.env.DEEPSEEK_API_KEY = 'env-key'
     try {
@@ -623,7 +622,7 @@ describe('web-search-deepseek plugin registration', () => {
       vi.stubGlobal('fetch', fetchMock)
       const ctx = new Context()
       await ctx.plugin(WebRuntime, { searchProvider: DEEPSEEK_PROVIDER_ID })
-      deepseekPlugin.apply(ctx, deepseekPlugin.Config({}))
+      deepseekPlugin.apply(ctx, deepseekPlugin.Config({ apiKeyEnv: 'DEEPSEEK_API_KEY' }))
       await ctx.web.search({ query: 'q' })
       const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
       expect(url).toBe('https://api.deepseek.com/anthropic/v1/messages')
@@ -646,7 +645,7 @@ describe('web-search-deepseek plugin registration', () => {
     try {
       await ctx.plugin(WebRuntime, { searchProvider: DEEPSEEK_PROVIDER_ID })
       await ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })
-      await ctx.plugin(deepseekPlugin, { baseURL: 'https://api.deepseek.test/anthropic/v1' })
+      await ctx.plugin(deepseekPlugin, { baseURL: 'https://api.deepseek.test/anthropic/v1', apiKeyEnv: 'DEEPSEEK_API_KEY' })
 
       await expect(ctx.web.search({ query: 'missing' }))
         .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_CREDENTIAL_MISSING' }))
@@ -673,7 +672,7 @@ describe('web-search-deepseek plugin registration', () => {
     try {
       const ctx = new Context()
       await ctx.plugin(WebRuntime, { searchProvider: DEEPSEEK_PROVIDER_ID })
-      await ctx.plugin(deepseekPlugin, {})
+      await ctx.plugin(deepseekPlugin, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
       let caught: unknown
       try {
         await ctx.web.search({ query: 'q' })
@@ -726,8 +725,8 @@ describe('web-search-deepseek account route selection', () => {
   it('authenticates with the account token when the initiating Session uses the account route', async () => {
     const { headers, asked } = await searchAs('deepseek-account')
     expect(asked).toEqual(['https://api.deepseek.com/anthropic/v1/messages'])
-    expect(headers['x-dsh-auth-token']).toBe('account-token')
-    expect(headers).not.toHaveProperty('x-api-key')
+    expect(headers['x-api-key']).toBe('account-token')
+    expect(headers.authorization).toBe('Bearer account-token')
   })
 
   it.each(['deepseek-official', undefined])('keeps API-key authentication for route %j', async (provider) => {

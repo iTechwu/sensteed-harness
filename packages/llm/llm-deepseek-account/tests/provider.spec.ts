@@ -22,7 +22,7 @@ it('keeps discovery and disposal independent across the two credential routes', 
   const account = ctx.plugin(Account, { models: [{ id: 'account-model', name: 'Account model' }] })
   await account
   expect(ctx.llm.listProviders().map(row => row.id)).toEqual(['deepseek-account'])
-  const official = ctx.plugin(ApiKey, { models: [{ id: 'api-key-model', name: 'API-key model' }] })
+  const official = ctx.plugin(ApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY', models: [{ id: 'api-key-model', name: 'API-key model' }] })
   await official
   expect((await ctx.llm.listModels('deepseek-account')).map(row => row.id)).toEqual(['account-model'])
   expect((await ctx.llm.listModels('deepseek-official')).map(row => row.id)).toEqual(['api-key-model'])

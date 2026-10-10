@@ -26,7 +26,7 @@ function adapter(connection: () => DeepSeekConnectionOptions) {
 
 it.each([false, true])('uses Messages, schema=%s', async (schema) => {
   const http = await endpoint()
-  const raw = { baseURL: http.url }
+  const raw = { baseURL: http.url, apiKeyEnv: 'DEEPSEEK_API_KEY' }
   const connection = resolveAdapterOptions(schema ? plainOptions(Config(raw)) : raw)
   const response = await assemble(adapter(() => connection).stream(options()))
 

@@ -34,7 +34,7 @@ async function boot() {
   cleanup.push(() => ctx.fiber.dispose())
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(DeepSeekLlmApiExtensionRegistry)
-  await ctx.plugin(DeepSeek, { baseURL: 'https://messages.example.test/root' })
+  await ctx.plugin(DeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL: 'https://messages.example.test/root' })
   return ctx
 }
 
