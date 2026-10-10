@@ -112,7 +112,7 @@ export const DesktopEntryConfig = z.object({
 })
 export interface DesktopEntryConfig extends Config {
   /** Credential reference (environment-variable name) resolved per request; supplied by composition. */
-  apiKeyEnv: Volatile<string>
+  apiKeyEnv: Volatile<string | undefined>
 }
 
 /** Public API default; the internal endpoint comes from $DEEPSEEK_BASE_URL. */

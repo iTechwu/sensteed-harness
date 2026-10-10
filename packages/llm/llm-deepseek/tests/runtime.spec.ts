@@ -60,7 +60,7 @@ async function harness(baseURL: string, config: object = {}) {
   const ctx = new Context()
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(DeepSeekLlmApiExtensionRegistry)
-  await ctx.plugin(LlmDeepSeek, { apiKeyEnv: 'DEEPSEEK_API_KEY',  baseURL, apiKeyEnv: 'DEEPSEEK_API_KEY', ...config })
+  await ctx.plugin(LlmDeepSeek, { baseURL, apiKeyEnv: 'DEEPSEEK_API_KEY', ...config })
   return ctx
 }
 

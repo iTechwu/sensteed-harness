@@ -8,8 +8,8 @@ import type { Options as ProtocolOptions, DeepSeekConnectionOptions } from '@dee
 
 /** Messages configuration with a per-request API-key reference. */
 export interface Config extends ProtocolConfig {
-  /** Credential reference resolved per request; defaults to DEEPSEEK_API_KEY. */
-  apiKeyEnv: Volatile<string>
+  /** Credential reference resolved per request; the composition must supply it. */
+  apiKeyEnv: Volatile<string | undefined>
 }
 export const Config = z.object({
   ...deepSeekConfigFields,

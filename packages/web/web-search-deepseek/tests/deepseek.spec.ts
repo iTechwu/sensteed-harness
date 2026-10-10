@@ -443,7 +443,7 @@ describe('DeepSeekSearchProvider error handling', () => {
   })
 
   it('names the composed credential reference when no resolver is configured', async () => {
-    await expect(searchProvider({ ...options, apiKey: '', apiKeyEnv: 'CUSTOM_SEARCH_KEY' }).search({ query: 'q' }))
+    await expect(searchProvider({ ...options, apiKey: '', apiKeyEnv: credentialRef('CUSTOM_SEARCH_KEY') }).search({ query: 'q' }))
       .rejects.toThrow('DeepSeek search has no API key for "CUSTOM_SEARCH_KEY"')
   })
 

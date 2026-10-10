@@ -66,8 +66,12 @@ export function apply(ctx: Context, config: DesktopEntryConfig): void {
   // resolve from the composition values captured here.
   let ownedFacts: { apiKeyEnv: string; baseURL?: string } | undefined
   if (config.connectionPolicy === 'composition') {
+    const apiKeyEnv = config.apiKeyEnv.get()
+    if (apiKeyEnv === undefined) {
+      throw new Error('llm-deepseek: composition pins the credential reference (apiKeyEnv) but supplies none')
+    }
     const baseURL = config.baseURL.get()
-    ownedFacts = { apiKeyEnv: config.apiKeyEnv.get(), ...baseURL === undefined ? {} : { baseURL } }
+    ownedFacts = { apiKeyEnv, ...baseURL === undefined ? {} : { baseURL } }
   }
   const options = (): ResolvedDeepSeekOptions => {
     const plain = plainOptions(config)
