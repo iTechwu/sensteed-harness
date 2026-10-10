@@ -40,7 +40,7 @@ Choose this adapter for DeepSeek's official API or a Messages-compatible gateway
 ```yaml
 - name: '@deepseek-ai/dsh-llm-deepseek-api-key'
   config:
-    apiKeyEnv: DEEPSEEK_API_KEY  # credential reference, resolved per request
+    apiKeyEnv: SENSTEED_GATEWAY_API_KEY  # credential reference, resolved per request
     reasoningEffort: high        # optional; off | low | high | max
     maxTokens: 256000            # optional per-request output cap
     maxRequestFilesBytes: 134217728

@@ -25,14 +25,14 @@ Authentication resolution returns the validated API key in `x-api-key` for both 
 <a id="use-this-package"></a>
 ## Use this package
 
-`apiKeyEnv` defaults to `DEEPSEEK_API_KEY` and resolves per request and model discovery. When the credentials service exists, its precedence applies; only compositions without that service read the launch environment directly. Requests with missing credentials fail with `MISSING_CREDENTIAL`; malformed credentials fail with `INVALID_CREDENTIAL`. Model discovery returns an empty catalog when the credential is missing, hiding the route from model selectors while retaining its settings entry. Malformed credentials and other lookup failures propagate. Adding or removing a key affects the next discovery call.
+`apiKeyEnv` is supplied by the composition (the shipped base names `SENSTEED_GATEWAY_API_KEY`, the Feishu-provisioned gateway key) and resolves per request and model discovery. When the credentials service exists, its precedence applies; only compositions without that service read the launch environment directly. A composition without `apiKeyEnv` fails at load. Requests with missing credentials fail with `MISSING_CREDENTIAL`; malformed credentials fail with `INVALID_CREDENTIAL`. Model discovery returns an empty catalog when the credential is missing, hiding the route from model selectors while retaining its settings entry. Malformed credentials and other lookup failures propagate. Adding or removing a key affects the next discovery call.
 
 ```yaml
 - id: llm-deepseek
   name: '@deepseek-ai/dsh-llm-deepseek-api-key'
   config:
     reasoningEffort: high
-    apiKeyEnv: DEEPSEEK_API_KEY
+    apiKeyEnv: SENSTEED_GATEWAY_API_KEY
 ```
 
 The endpoint and credential reference come from one configuration resolution. In-flight requests retain that snapshot; subsequent updates affect subsequent calls. Account login state cannot change this route’s credential.
