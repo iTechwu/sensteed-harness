@@ -196,11 +196,6 @@ export function parseDshArgs(argv: readonly string[], version: string, manageDes
       .argument('[args...]', 'pnpm arguments, forwarded verbatim (add <pkg>, remove <pkg>, why <pkg>, ...)')
       .action((args: string[], options: { profile: string }) => {
         if (options.profile === '') program.error('error: --profile needs a name')
-        // The Desktop bootstrap injects `--profile desktop` ahead of the user's
-        // own arguments, so a bare help request must answer before the guard
-        // rejects the Electron-managed profile.
-        if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')
-          && options.profile.toLowerCase() === 'desktop') plugin.help()
         if (!manageDesktopProfile) rejectElectronProfile(plugin, options.profile)
         if (args.length === 0) program.error('error: plugin needs pnpm arguments to forward (e.g. add <package>)')
         resolved = { mode: 'plugin', profile: options.profile.toLowerCase() === 'desktop' ? 'desktop' : options.profile, args }

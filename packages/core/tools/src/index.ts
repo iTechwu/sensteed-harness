@@ -1032,13 +1032,12 @@ export class ToolRuntime extends Service {
     const schemas = [...view.visible.values()]
       .map(definition => this.wireSchemaOf(definition))
       .filter((schema): schema is ToolSchema => schema !== undefined)
-    if (mode === 'ptc') {
-      return {
-        schemas: schemas.filter(schema => schema.name === RUN_CODE_NAME),
-        knownNames: [RUN_CODE_NAME],
-      }
+    // Upstream removed the 'both' presentation mode: a non-native scope is
+    // always PTC, whose wire surface collapses to run_code alone.
+    return {
+      schemas: schemas.filter(schema => schema.name === RUN_CODE_NAME),
+      knownNames: [RUN_CODE_NAME],
     }
-    return { schemas, knownNames: [...view.knownNames, RUN_CODE_NAME] }
   }
 
   /**

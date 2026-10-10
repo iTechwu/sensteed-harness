@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parseDshArgs } from '../src/args.ts'
 
@@ -247,15 +250,36 @@ describe('parseDshArgs', () => {
     expect(exitCode(['--from-default-profile', 'web', 'plugin', '--profile', 'x', 'add', 'y'])).toBe(1)
   })
 
-  it('answers a bare plugin help before rejecting the Electron-managed desktop profile', () => {
-    // The Desktop bootstrap injects `--profile desktop` ahead of `--help`.
-    expect(exitCode(['plugin', '--profile', 'desktop', '--help'])).toBe(0)
-    expect(exitCode(['plugin', '--profile', 'Desktop', '-h'])).toBe(0)
+  it('answers plugin help for every profile, including the guarded desktop one', () => {
+    // Upstream restored the plugin subcommand's own help option, so Commander
+    // answers `--help` for every profile before the desktop guard could
+    // reject it. The vitest module runner intercepts `process.exit` inside
+    // tested modules, so the codes are probed in a child Node process.
+    const entry = pathToFileURL(resolve(import.meta.dirname, '../src/args.ts')).href
+    const probe = (argv: readonly string[]): number => {
+      const script = `
+        const { parseDshArgs } = await import(${JSON.stringify(entry)})
+        try {
+          parseDshArgs(${JSON.stringify(argv)}, '1.2.3', false)
+          console.log('RETURNED')
+        } catch {
+          console.log('THREW')
+        }`
+      try {
+        execFileSync(process.execPath, ['--import', 'tsx', '--eval', script], {
+          cwd: resolve(import.meta.dirname, '../..'),
+          stdio: ['ignore', 'pipe', 'pipe'],
+        })
+        return 0
+      } catch (error) {
+        return (error as { status?: number | null }).status ?? 1
+      }
+    }
+    expect(probe(['plugin', '--profile', 'desktop', '--help'])).toBe(0)
+    expect(probe(['plugin', '--profile', 'Desktop', '-h'])).toBe(0)
+    expect(probe(['plugin', '--profile', 'tui', '--help'])).toBe(0)
     // Real management arguments stay rejected for the desktop profile.
     expect(exitCode(['plugin', '--profile', 'desktop', 'add', '--help'])).toBe(1)
-    // Other profiles keep forwarding `--help` to pnpm verbatim.
-    expect(parse(['plugin', '--profile', 'tui', '--help']))
-      .toEqual({ mode: 'plugin', profile: 'tui', args: ['--help'] })
   })
 
   it('allows the Electron host to manage its profile through the scoped plugin boundary', () => {
