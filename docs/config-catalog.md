@@ -796,35 +796,21 @@ export interface Config {
 ## `@deepseek-ai/dsh-deepseek-account-platform`
 
 - `inject`: `credentials` · `authorization`
-- `source`: [`packages/credentials/deepseek-account-platform/src/index.ts:23`](../packages/credentials/deepseek-account-platform/src/index.ts)
+- `source`: [`packages/credentials/deepseek-account-platform/src/index.ts:31`](../packages/credentials/deepseek-account-platform/src/index.ts)
 
 ```ts config-catalog
-/** Deployment-specific platform and request deadlines. */
+/** Deployment-specific gateway endpoints and request deadlines. */
 export interface Config {
-  /** Platform origin serving auth-api and browser pages. */
-  platformOrigin?: string
-  /** Native desktop identity for Host API and embedded Platform requests; null identifies the client as web. */
-  desktopPlatform?: 'darwin' | 'win32' | null
-  /** Optional frontend deployment selector for embedded Usage and Top-up pages. */
-  embeddedPageDist?: string
-  /** Exact HTTP(S) origin allowed to receive account tokens for inference and files. */
-  inferenceOrigin?: string
+  /** SSO API base serving OAuth authorize and token endpoints, including any deployment path prefix. */
+  ssoApiOrigin?: string
+  /** Gateway API base serving the desktop key bridge and model inference, including any path prefix. */
+  gatewayApiOrigin?: string
+  /** Credentials ref the provisioned gateway key is written to and read from. */
+  credentialRefName?: string
   /** Allow HTTP only on loopback for the development Mock. */
   allowLoopbackHttp?: boolean
-  /** Map authorization and completion pages to platformOrigin for private development proxies. */
-  rewriteBrowserOrigin?: boolean
-  /** Host-only headers sent exclusively to platformOrigin; account authorization cannot be overridden. */
-  requestHeaders?: Record<string, string>
-  /** Overrides for profile, balance and embedded Platform requests; Cookie pairs merge by name. Logout retains requestHeaders. */
-  accountRequestHeaders?: Record<string, string>
-  /** Deadline for each platform HTTP request. */
+  /** Deadline for each gateway HTTP request. */
   requestTimeoutMs?: number
-  /** Deadline for recharge-wallet queries; timeout returns a failed balance outcome. */
-  balanceTimeoutMs?: number
-  /** Additional logout attempts after the first request fails, at most five. */
-  logoutMaxRetries?: number
-  /** Delay before the first logout retry; each later delay doubles. */
-  logoutRetryDelayMs?: number
   /** Upper bound for the entire local attempt, even if the server advertises a longer TTL. */
   attemptTimeoutMs?: number
 }
@@ -1714,8 +1700,8 @@ export interface Config {
 
 ```ts config-catalog
 export interface DesktopEntryConfig extends Config {
-  /** Credential reference (environment-variable name) resolved per request; defaults to `DEEPSEEK_API_KEY`. */
-  apiKeyEnv: Volatile<string>
+  /** Credential reference (environment-variable name) resolved per request; supplied by composition. */
+  apiKeyEnv: Volatile<string | undefined>
 }
 
 /** Shared Messages request configuration, without provider credential selection. */
@@ -1732,7 +1718,7 @@ export interface Config {
   maxTokens: Volatile<number>
   /** Positive context capacity used when the selected model has no exact value (default 1,000,000). */
   defaultContextWindow: Volatile<number>
-  /** Advisory models shown by discovery consumers; defaults to V41 Flash and V4 Pro. */
+  /** Advisory models shown by discovery consumers; defaults to V4.1 Flash and V4 Pro. */
   models: Volatile<DeepSeekCatalogModel[]>
   /** Maximum provider idle time while one stream read is outstanding (default five minutes). */
   streamIdleTimeoutMs: Volatile<number>
@@ -1826,8 +1812,8 @@ export type Config = ProtocolConfig
 ```ts config-catalog
 /** Messages configuration with a per-request API-key reference. */
 export interface Config extends ProtocolConfig {
-  /** Credential reference resolved per request; defaults to DEEPSEEK_API_KEY. */
-  apiKeyEnv: Volatile<string>
+  /** Credential reference resolved per request; the composition must supply it. */
+  apiKeyEnv: Volatile<string | undefined>
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-api-key -->
@@ -3812,7 +3798,7 @@ export interface Config {
 ## `@deepseek-ai/dsh-tool-ci`
 
 - `inject`: `tools` · `shell` · `systemPrompt`
-- `source`: [`packages/ci/tool-ci/src/index.ts:50`](../packages/ci/tool-ci/src/index.ts)
+- `source`: [`packages/ci/tool-ci/src/index.ts:49`](../packages/ci/tool-ci/src/index.ts)
 
 ```ts config-catalog
 /** Plugin config: the gate timeout budget, the output cap, and the default stop-on-failure mode. */
@@ -4465,15 +4451,15 @@ export interface Config {
 
 - `inject`: `web`
 - `refs`: `Volatile` (`@deepseek-ai/cordis`)
-- `source`: [`packages/web/web-search-deepseek/src/index.ts:49`](../packages/web/web-search-deepseek/src/index.ts)
+- `source`: [`packages/web/web-search-deepseek/src/index.ts:47`](../packages/web/web-search-deepseek/src/index.ts)
 
 ```ts config-catalog
 /** Plugin config (all optional — `apply` fills env-var and constant defaults). */
 export interface Config {
   /** Literal DeepSeek API key; prefer {@link apiKeyEnv} so no secret enters configuration files. */
   apiKey: Volatile<string | undefined>
-  /** Credential reference resolved for each search; defaults to `DEEPSEEK_API_KEY`. */
-  apiKeyEnv: Volatile<string>
+  /** Credential reference resolved for each search; supplied by composition. */
+  apiKeyEnv: Volatile<string | undefined>
   /** Anthropic-compatible endpoint base; `/messages` is appended. */
   baseURL: Volatile<string | undefined>
   /** Anthropic-format model name. Defaults to `deepseek-v4-flash`. */

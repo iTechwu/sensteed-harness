@@ -44,3 +44,8 @@ kind: "package-reference"
 - 签发失败映射为三种登录错误码：access token 被拒为 `expired`；授权拒绝（非 sensteed company code、缺失飞书身份、非成员租户）为 `protocol`；限流与服务器错误为 `network`；响应体仅 Host 可见。
 - 网关侧轮换 key 后，存量 key 失效且无通知；下一次模型请求以凭据错误失败，直到用户重新登录（幂等重领）。
 - 进程环境遮蔽引用值属于配置错误：登录在写入后校验有效值，以 `storage` 失败，而不是存入永远读不到的凭据。
+
+<a id="dev-note"></a>
+### 开发备注
+
+PKCE 机制（verifier/challenge 生成、常量时间 state 比对、loopback 回调生命周期）沿用自先前的平台登录；SSO token 兑换与 key 领取只替换了平台兑换步骤。key 存放在凭据引用段，而 `deepseek-account-platform/default` 下的记录只保存绑定部署的元数据，因此密钥不会同时落两处。

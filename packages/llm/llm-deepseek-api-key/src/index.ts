@@ -20,7 +20,11 @@ export function apply(ctx: Context, config: Config): void {
   // resolve from the composition values captured here.
   let ownedFacts: { apiKeyEnv: string; baseURL?: string } | undefined
   if (config.connectionPolicy === 'composition') {
-    ownedFacts = { apiKeyEnv: config.apiKeyEnv.get() }
+    const apiKeyEnv = config.apiKeyEnv.get()
+    if (apiKeyEnv === undefined) {
+      throw new Error('llm-deepseek: composition pins the credential reference (apiKeyEnv) but supplies none')
+    }
+    ownedFacts = { apiKeyEnv }
     const baseURL = config.baseURL.get()
     if (baseURL !== undefined) ownedFacts.baseURL = baseURL
   }

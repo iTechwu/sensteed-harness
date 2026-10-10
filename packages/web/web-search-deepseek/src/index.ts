@@ -48,7 +48,7 @@ export interface Config {
   /** Literal DeepSeek API key; prefer {@link apiKeyEnv} so no secret enters configuration files. */
   apiKey: Volatile<string | undefined>
   /** Credential reference resolved for each search; supplied by composition. */
-  apiKeyEnv: Volatile<string>
+  apiKeyEnv: Volatile<string | undefined>
   /** Anthropic-compatible endpoint base; `/messages` is appended. */
   baseURL: Volatile<string | undefined>
   /** Anthropic-format model name. Defaults to `deepseek-v4-flash`. */

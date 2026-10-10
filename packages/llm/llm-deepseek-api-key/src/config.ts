@@ -29,7 +29,8 @@ export interface ResolvedDeepSeekOptions extends DeepSeekConnectionOptions {
  * @returns detached resolver inputs.
  */
 export function plainOptions(config: Config): Options {
-  return { ...protocolOptions(config), apiKeyEnv: config.apiKeyEnv.get() }
+  const apiKeyEnv = config.apiKeyEnv.get()
+  return { ...protocolOptions(config), ...(apiKeyEnv === undefined ? {} : { apiKeyEnv }) }
 }
 /** Resolve API-key and protocol settings together.
  * @param config - raw deployment settings.

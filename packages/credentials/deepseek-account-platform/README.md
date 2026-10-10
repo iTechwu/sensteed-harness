@@ -42,3 +42,8 @@ No model request prefix changes.
 - Provisioning failures map to three sign-in codes: `expired` for a rejected access token, `protocol` for authorization rejections (non-Sensteed company code, missing Feishu identity, non-member tenant), and `network` for rate limiting and server errors; the response body stays Host-only.
 - A gateway-side key rotation invalidates the stored key without notification; the next model request fails with a credential error until the user signs in again, which re-provisions idempotently.
 - A references value shadowed by the process environment is a misconfiguration: sign-in verifies the effective value after writing and fails as `storage` rather than storing a credential that can never be read.
+
+<a id="dev-note"></a>
+### Dev Note
+
+The PKCE machinery (verifier/challenge generation, the timing-safe state comparison, and the loopback callback lifecycle) is carried over from the previous platform sign-in; the SSO token exchange and key provisioning replaced only the platform exchange steps. The key lives in the credentials references section while the record under `deepseek-account-platform/default` holds deployment-bound metadata only, so the secret never sits in two stores.
