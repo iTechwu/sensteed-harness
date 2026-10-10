@@ -115,7 +115,11 @@
     - id: deepseek-account
       name: '@deepseek-ai/dsh-deepseek-account-platform'
       config:
-        desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
+        # Feishu SSO sign-in provisions a gateway API key; `gatewayApiOrigin` must
+        # stay consistent with the llm-deepseek row's `baseURL` below.
+        ssoApiOrigin: https://sso.ixicai.cn/api
+        gatewayApiOrigin: https://ai.hozonauto.com/api
+        credentialRefName: SENSTEED_GATEWAY_API_KEY
 
     - id: credentials
       name: '@deepseek-ai/dsh-credentials-local'

@@ -1,6 +1,15 @@
-/** Validated platform HTTP messages and restricted browser destinations. */
+/** Validated Sensteed gateway HTTP messages and restricted loopback login origins. */
 import { z } from 'zod'
-import type { AccountBonusOrderId, SignInErrorCode } from '@deepseek-ai/dsh-deepseek-account/types'
+import type { SignInErrorCode } from '@deepseek-ai/dsh-deepseek-account/types'
+
+/** Fixed deployment identity of the Sensteed desktop OAuth client on the SSO service. */
+export const SSO_CLIENT_ID = 'sensteed-desktop'
+/** Fixed company code the gateway requires on the desktop key bridge. */
+export const COMPANY_CODE = 'sensteed'
+/** OAuth scopes requested for desktop sign-in; `offline_access` yields a refresh token. */
+export const AUTHORIZE_SCOPE = 'openid profile email tenant offline_access'
+/** Redirect path registered for the desktop client; the port stays dynamic per RFC 8252. */
+export const CALLBACK_PATH = '/callback'
 
 /** Protocol errors expose a stable code, never a response body or authorization URL. */
 export class PlatformAuthError extends Error {
@@ -8,229 +17,26 @@ export class PlatformAuthError extends Error {
   constructor(readonly code: SignInErrorCode) { super(`account: ${code}`) }
 }
 
-/** An authenticated Platform request was rejected with HTTP 401 or code 40003. */
+/** An authenticated gateway request was rejected with HTTP 401. */
 export class AccountUnauthorizedError extends PlatformAuthError {
   constructor() { super('expired') }
 }
 
 /**
- * Accept HTTPS platform endpoints, or explicitly configured loopback development HTTP.
- * @param value - configured origin.
+ * Accept an HTTPS API base, or explicitly configured loopback development HTTP.
+ * Unlike a bare origin, a deployment path prefix (for example `/api`) is kept.
+ * @param value - configured API base.
  * @param allowLoopbackHttp - development-only opt-in.
- * @returns normalized origin.
+ * @returns normalized base without a trailing slash.
  */
-export function platformOrigin(value: string, allowLoopbackHttp: boolean): string {
+export function apiOrigin(value: string, allowLoopbackHttp: boolean): string {
   const url = new URL(value)
   const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
-  if (url.username || url.password || url.pathname !== '/' || url.search || url.hash
+  if (url.username || url.password || url.search || url.hash
     || !(url.protocol === 'https:' || (allowLoopbackHttp && loopback && url.protocol === 'http:'))) {
-    throw new Error('account: platformOrigin must be an HTTPS origin or explicitly enabled loopback HTTP origin')
+    throw new Error('account: API origin must be an HTTPS URL or explicitly enabled loopback HTTP URL')
   }
-  return url.origin
-}
-
-/**
- * Validate platform-owned browser destinations without forwarding arbitrary URLs.
- * @param value - returned browser URL.
- * @param origin - configured platform origin.
- * @param path - fixed authorize or completion path.
- * @param rewriteOrigin - map validated browser pages to the configured development origin.
- * @returns normalized URL on the configured origin.
- */
-export function browserUrl(value: string, origin: string, path: string, rewriteOrigin = false): string {
-  let url: URL
-  try { url = new URL(value) } catch {
-    console.info('[deepseek-account] browser URL rejected', { path, reason: 'invalid-url' })
-    throw new PlatformAuthError('protocol')
-  }
-  const allowedOrigin = url.origin === origin || (rewriteOrigin && url.protocol === 'https:')
-  if (!allowedOrigin || url.pathname !== path || url.username || url.password || url.hash) {
-    console.info('[deepseek-account] browser URL rejected', {
-      path, originMismatch: !allowedOrigin, pathMismatch: url.pathname !== path,
-      hasCredentials: Boolean(url.username || url.password), hasFragment: Boolean(url.hash),
-    })
-    throw new PlatformAuthError('protocol')
-  }
-  return rewriteOrigin ? `${origin}${url.pathname}${url.search}` : url.href
-}
-
-/**
- * Validate Host-only deployment headers without exposing their values in diagnostics.
- * @param values - configured headers for the Platform origin.
- * @returns normalized headers; authorization, routing and framing remain provider-owned.
- */
-export function platformHeaders(values: Record<string, string>): Record<string, string> {
-  const headers = new Headers()
-  const names = new Set<string>()
-  for (const [name, value] of Object.entries(values)) {
-    const key = name.toLowerCase()
-    if (['authorization', 'x-dsh-auth-token', 'host', 'content-length', 'transfer-encoding', 'connection', 'content-type'].includes(key)
-      || names.has(key)) throw new Error('account: requestHeaders contains a reserved or duplicate header')
-    names.add(key)
-    try { headers.set(name, value) }
-    catch { throw new Error('account: requestHeaders contains an invalid header') }
-  }
-  return Object.fromEntries(headers)
-}
-
-const envelope = z.object({ code: z.literal(0), data: z.object({ biz_code: z.number().int(), biz_data: z.unknown() }) })
-/** Successful initialization response. */
-export const initialization = z.object({
-  authorize_url: z.url(), authorize_id: z.string().min(1), expires_in: z.number().positive(),
-})
-/** Successful code exchange response. */
-export const exchange = z.object({ token: z.string().regex(/^[\x21-\x7e]+$/), authorized_url: z.url(), user: z.unknown().optional() })
-
-/**
- * Read one bounded platform response with stable, non-secret diagnostics.
- * @param origin - validated platform origin.
- * @param method - platform endpoint suffix.
- * @param body - protocol request, never logged.
- * @param signal - attempt cancellation and timeout.
- * @param headers - validated deployment headers for this origin.
- * @returns successful business payload, validated by its caller.
- */
-export async function requestPlatform(origin: string, method: string, body: unknown,
-  signal: AbortSignal, headers: Record<string, string>): Promise<unknown> {
-  return platformRequest(`${origin}/auth-api/v0/dsh/${method}`, {
-    method: 'POST', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(body),
-  }, signal)
-}
-
-/**
- * Fetch a fixed Platform account endpoint with the grant kept in Host request headers.
- * @param origin - configured and grant-matched origin.
- * @param path - account endpoint.
- * @param token - account grant.
- * @param signal - credential lifetime and request timeout.
- * @param headers - validated deployment headers for this origin.
- * @returns successful business payload.
- */
-export function requestAccount(origin: string, path: '/auth-api/v0/users/current' | '/api/v0/users/get_user_summary',
-  token: string,
-  signal: AbortSignal, headers: Record<string, string>): Promise<unknown> {
-  return platformRequest(`${origin}${path}`, { method: 'GET', headers: accountHeaders(headers, token) }, signal)
-}
-
-/**
- * Read the granted bonuses Platform has not yet recorded as displayed.
- * @param origin - configured origin matching the grant issuer.
- * @param token - stored account grant.
- * @param signal - credential lifetime and request timeout.
- * @param headers - deployment and client identity headers for this origin.
- * @returns successful business payload holding the unnotified bonus list.
- */
-export function requestUnnotifiedBonuses(origin: string, token: string,
-  signal: AbortSignal, headers: Record<string, string>): Promise<unknown> {
-  return platformRequest(`${origin}/api/v0/users/get_unnotified_bonuses`,
-    { method: 'GET', headers: accountHeaders(headers, token) }, signal)
-}
-
-/**
- * Acknowledge an actually displayed bonus to Platform.
- * @param origin - configured origin matching the grant issuer.
- * @param token - stored account grant.
- * @param orderId - granted bonus order the user saw.
- * @param signal - credential lifetime and request timeout.
- * @param headers - deployment and client identity headers for this origin.
- * @returns successful business payload, which carries no data.
- */
-export function requestBonusNotified(origin: string, token: string, orderId: AccountBonusOrderId,
-  signal: AbortSignal, headers: Record<string, string>): Promise<unknown> {
-  return platformRequest(`${origin}/api/v0/users/ack_bonus_notified`, {
-    method: 'POST', headers: { ...accountHeaders(headers, token), 'content-type': 'application/json' },
-    body: JSON.stringify({ order_id: orderId }),
-  }, signal)
-}
-
-// The grant is provider-owned; deployment requestHeaders cannot override it or the client identity.
-function accountHeaders(headers: Record<string, string>, token: string): Record<string, string> {
-  return { ...headers, 'x-dsh-auth-token': token }
-}
-
-/**
- * End the Platform session using its existing logout endpoint.
- * @param origin - configured origin matching the grant issuer.
- * @param token - stored account token.
- * @param signal - logout request deadline.
- * @param headers - validated deployment headers for this origin.
- * @returns after Platform confirms logout.
- */
-export async function logoutAccount(origin: string, token: string,
-  signal: AbortSignal, headers: Record<string, string>): Promise<void> {
-  await platformRequest(`${origin}/auth-api/v0/users/logout`, {
-    method: 'POST', headers: { ...headers, 'x-dsh-auth-token': token },
-  }, signal)
-}
-
-async function platformRequest(url: string, init: RequestInit, signal: AbortSignal): Promise<unknown> {
-  const path = new URL(url).pathname
-  console.info('[deepseek-account] request', { path, method: init.method })
-  let response: Response
-  try {
-    response = await fetch(url, { ...init, redirect: 'error', signal })
-  } catch {
-    console.info('[deepseek-account] request failed', { path, errorCode: 'no-response', aborted: signal.aborted })
-    throw new PlatformAuthError('no-response')
-  }
-  console.info('[deepseek-account] response', { path, status: response.status })
-  if (response.status === 401 && new Headers(init.headers).has('x-dsh-auth-token')) {
-    await response.body?.cancel()
-    throw new AccountUnauthorizedError()
-  }
-  if (!response.ok || response.body === null) {
-    await response.body?.cancel()
-    throw new PlatformAuthError('network')
-  }
-  const reader = response.body.getReader()
-  const chunks: Uint8Array[] = []
-  let size = 0
-  let stage = 'read-body'
-  try {
-    while (true) {
-      const next = await reader.read()
-      if (next.done) break
-      size += next.value.byteLength
-      if (size > 65_536) {
-        stage = 'body-limit'
-        throw new PlatformAuthError('protocol')
-      }
-      chunks.push(next.value)
-    }
-    stage = 'parse-json'
-    const payload: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'))
-    const authorization = z.object({ code: z.literal(40003) }).safeParse(payload)
-    if (authorization.success && new Headers(init.headers).has('x-dsh-auth-token')) {
-      throw new AccountUnauthorizedError()
-    }
-    const codes = z.object({ code: z.number().int(), data: z.object({ biz_code: z.number().int() }).optional() }).safeParse(payload)
-    if (codes.success) console.info('[deepseek-account] response codes', {
-      path, code: codes.data.code, bizCode: codes.data.data?.biz_code,
-    })
-    stage = 'envelope'
-    const parsed = envelope.safeParse(payload)
-    if (!parsed.success) {
-      console.info('[deepseek-account] envelope rejected', {
-        path, issues: parsed.error.issues.map(issue => ({ path: issue.path, code: issue.code })),
-      })
-      throw new PlatformAuthError('protocol')
-    }
-    stage = 'business-code'
-    if (parsed.data.data.biz_code !== 0) {
-      // TODO(product-error-ui): Apply product-defined copy and UI behavior for the supplied biz_code values.
-      // Business failures use the existing generic failure UI until then; backend messages stay Host-only.
-      throw new PlatformAuthError('protocol')
-    }
-    return parsed.data.data.biz_data
-  } catch (error) {
-    console.info('[deepseek-account] response rejected', { path, stage,
-      errorCode: error instanceof PlatformAuthError ? error.code : 'protocol' })
-    if (error instanceof PlatformAuthError) throw error
-    throw new PlatformAuthError('protocol')
-  } finally {
-    await reader.cancel().catch(() => undefined)
-    reader.releaseLock()
-  }
+  return `${url.origin}${url.pathname.replace(/\/+$/u, '')}`
 }
 
 /**
@@ -248,4 +54,152 @@ export function loginOrigin(value: string): string {
     throw new PlatformAuthError('protocol')
   }
   return `${url.protocol}//${url.hostname}:${Number(explicitPort)}`
+}
+
+/** Successful OAuth authorization-code token response from the SSO service. */
+export const oidcTokenResponse = z.object({
+  access_token: z.string().min(1),
+  token_type: z.string(),
+  expires_in: z.number().positive(),
+  refresh_token: z.string().optional(),
+  id_token: z.string().optional(),
+  scope: z.string().optional(),
+})
+
+/** Successful desktop key provisioning response; unused fields stay unvalidated. */
+export const provisionKeyResponse = z.object({
+  key: z.string().min(1),
+  rotated: z.boolean().optional(),
+  user: z.object({
+    ssoSub: z.string().min(1),
+    name: z.string().optional(),
+    avatar: z.string().optional(),
+  }).optional(),
+})
+
+/**
+ * Build the SSO authorization URL for one sign-in attempt.
+ * @param ssoApiOrigin - validated SSO API base.
+ * @param redirectUri - loopback callback URI registered for this attempt.
+ * @param state - attempt state whose comparison uses a timing-safe check.
+ * @param codeChallenge - S256 PKCE challenge derived from the attempt verifier.
+ * @returns the authorization URL the browser opens.
+ */
+export function buildAuthorizeUrl(ssoApiOrigin: string, redirectUri: string, state: string, codeChallenge: string): string {
+  const url = new URL(`${ssoApiOrigin}/oauth/authorize`)
+  url.searchParams.set('response_type', 'code')
+  url.searchParams.set('client_id', SSO_CLIENT_ID)
+  url.searchParams.set('redirect_uri', redirectUri)
+  url.searchParams.set('scope', AUTHORIZE_SCOPE)
+  url.searchParams.set('state', state)
+  url.searchParams.set('code_challenge', codeChallenge)
+  url.searchParams.set('code_challenge_method', 'S256')
+  return url.href
+}
+
+/** Error payload shape of the SSO token endpoint; only the OAuth error code is read. */
+const oauthError = z.object({ error: z.string() })
+
+/**
+ * Exchange one authorization code for the signed-in identity's access token.
+ * @param ssoApiOrigin - validated SSO API base.
+ * @param body - authorization-code grant parameters, never logged.
+ * @param signal - attempt cancellation and timeout.
+ * @returns the validated token response.
+ */
+export async function requestSsoToken(ssoApiOrigin: string, body: Record<string, string>,
+  signal: AbortSignal): Promise<z.infer<typeof oidcTokenResponse>> {
+  return gatewayRequest(`${ssoApiOrigin}/oauth/token`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }, signal, oidcTokenResponse, (status, payload) => {
+    if (status === 400 && oauthError.safeParse(payload).success
+      && oauthError.parse(payload).error === 'invalid_grant') return 'expired'
+    return status >= 400 && status < 500 ? 'protocol' : 'network'
+  })
+}
+
+/**
+ * Provision or rotate the caller's gateway API key through the desktop bridge.
+ * @param gatewayApiOrigin - validated gateway API base.
+ * @param accessToken - SSO access token carrying the verified Feishu identity.
+ * @param signal - attempt cancellation and timeout.
+ * @returns the validated provisioning response holding the full key.
+ */
+export async function requestProvisionKey(gatewayApiOrigin: string, accessToken: string,
+  signal: AbortSignal): Promise<z.infer<typeof provisionKeyResponse>> {
+  return gatewayRequest(`${gatewayApiOrigin}/auth/desktop/provision-key`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${accessToken}`, 'x-company-code': COMPANY_CODE },
+  }, signal, provisionKeyResponse, (status) => {
+    if (status === 401) return 'expired'
+    if (status === 429) return 'network'
+    return status >= 400 && status < 500 ? 'protocol' : 'network'
+  })
+}
+
+/**
+ * Read one bounded gateway JSON response with stable, non-secret diagnostics.
+ * @param url - endpoint URL.
+ * @param init - request options; the body is never logged.
+ * @param signal - attempt cancellation and timeout.
+ * @param schema - success payload validation.
+ * @param rejectStatus - maps a non-2xx status plus parsed body to a sign-in error code.
+ * @returns the validated payload.
+ */
+async function gatewayRequest<T>(url: string, init: RequestInit, signal: AbortSignal,
+  schema: z.ZodType<T>, rejectStatus: (status: number, payload: unknown) => SignInErrorCode): Promise<T> {
+  const path = new URL(url).pathname
+  console.info('[deepseek-account] request', { path, method: init.method })
+  let response: Response
+  try {
+    response = await fetch(url, { ...init, redirect: 'error', signal })
+  } catch {
+    console.info('[deepseek-account] request failed', { path, errorCode: 'no-response', aborted: signal.aborted })
+    throw new PlatformAuthError('no-response')
+  }
+  console.info('[deepseek-account] response', { path, status: response.status })
+  const reader = response.body?.getReader()
+  let stage = 'read-status'
+  try {
+    const payload = await readBoundedJson(reader, () => { stage = 'body-limit' })
+    stage = 'validate'
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined)
+      throw new PlatformAuthError(rejectStatus(response.status, payload))
+    }
+    const parsed = schema.safeParse(payload)
+    if (!parsed.success) {
+      console.info('[deepseek-account] payload rejected', {
+        path, issues: parsed.error.issues.map(issue => ({ path: issue.path, code: issue.code })),
+      })
+      throw new PlatformAuthError('protocol')
+    }
+    return parsed.data
+  } catch (error) {
+    console.info('[deepseek-account] response rejected', { path, stage,
+      errorCode: error instanceof PlatformAuthError ? error.code : 'protocol' })
+    if (error instanceof PlatformAuthError) throw error
+    throw new PlatformAuthError('protocol')
+  } finally {
+    await reader?.cancel().catch(() => undefined)
+    reader?.releaseLock()
+  }
+}
+
+/** Read one bounded JSON body through the acquired stream reader. */
+async function readBoundedJson(reader: ReadableStreamDefaultReader<Uint8Array> | undefined,
+  onLimit: () => void): Promise<unknown> {
+  if (reader === undefined) throw new PlatformAuthError('protocol')
+  const chunks: Uint8Array[] = []
+  let size = 0
+  while (true) {
+    const next = await reader.read()
+    if (next.done) break
+    size += next.value.byteLength
+    if (size > 65_536) { onLimit(); throw new PlatformAuthError('protocol') }
+    chunks.push(next.value)
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'))
 }

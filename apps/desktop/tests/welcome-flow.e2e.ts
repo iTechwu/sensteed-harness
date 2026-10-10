@@ -23,51 +23,40 @@ function version(path: string): string {
   return (JSON.parse(readFileSync(path, 'utf8')) as { version: string }).version
 }
 
-async function mockPlatform() {
+async function mockGateway() {
   let origin = ''
-  let init: Record<string, string> = {}
-  let failExchange = false
+  let failToken = false
   const server = createServer((req, res) => {
-    // The real Host composition identifies every Platform request with the five client headers.
-    const expected = {
-      'x-client-bundle-id': '', 'x-client-platform': process.platform === 'win32' ? 'desktop-win' : 'desktop-mac',
-      'x-client-version': '1.2.3', 'x-client-locale': 'en_US',
-      'x-client-timezone-offset': String(-new Date().getTimezoneOffset() * 60),
-    }
-    for (const [name, value] of Object.entries(expected)) {
-      if (req.headers[name] !== value) { res.writeHead(400).end(); return }
-    }
-    if (req.headers.cookie !== 'test_gate=synthetic') { res.writeHead(403).end(); return }
-    if (req.url === '/auth-api/v0/users/logout' && req.method === 'POST') {
-      if (req.headers['x-dsh-auth-token'] !== 'dsh_mock_composition_test') { res.writeHead(401).end(); return }
-      res.writeHead(503).end()
-      return
-    }
+    if (req.method !== 'POST') { res.writeHead(404).end(); return }
     req.setEncoding('utf8')
     let body = ''
     req.on('data', (chunk: string) => { body += chunk })
     req.on('end', () => {
-      const input = JSON.parse(body) as Record<string, string>
-      let value: unknown
-      if (req.url?.endsWith('auth_init')) {
-        init = input
-        if (input.locale !== 'en_US') { res.writeHead(400).end(); return }
-        value = { authorize_url: `${origin}/dsh/authorize?authorize_id=test`, expires_in: 600, authorize_id: 'test' }
-      } else if (req.url?.endsWith('auth_cancel')) {
+      if (req.url === '/oauth/token') {
+        if (req.headers.authorization !== undefined) { res.writeHead(400).end(); return }
+        const input = JSON.parse(body) as Record<string, string>
+        // The real SSO validates redirect_uri against the client registration; the loopback
+        // port is dynamic, so this mock only pins the registered path.
+        if (input.client_id !== 'sensteed-desktop' || input.grant_type !== 'authorization_code'
+          || new URL(input.redirect_uri ?? 'invalid:').pathname !== '/callback') { res.writeHead(400).end(); return }
         const challenge = createHash('sha256').update(input.code_verifier ?? '').digest('base64url')
-        if (input.authorize_id !== 'test' || challenge !== init.code_challenge) { res.writeHead(400).end(); return }
-        value = null
-      } else {
-        if (failExchange) { res.writeHead(503).end(); return }
-        const challenge = createHash('sha256').update(input.code_verifier ?? '').digest('base64url')
-        if (challenge !== init.code_challenge || input.redirect_uri !== init.redirect_uri) {
-          res.writeHead(400).end()
-          return
-        }
-        value = { user: null, token: 'dsh_mock_composition_test', authorized_url: `${origin}/dsh/authorized?result=test&locale=zh_CN` }
+        if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) { res.writeHead(400).end(); return }
+        if (failToken) { res.writeHead(503).end(); return }
+        res.setHeader('content-type', 'application/json')
+        res.end(JSON.stringify({ access_token: 'sso-mock-access-token', token_type: 'Bearer', expires_in: 3600 }))
+        return
       }
-      res.setHeader('content-type', 'application/json')
-      res.end(JSON.stringify({ code: 0, data: { biz_code: 0, biz_data: value } }))
+      if (req.url === '/auth/desktop/provision-key') {
+        if (req.headers.authorization !== 'Bearer sso-mock-access-token') { res.writeHead(401).end(); return }
+        if (req.headers['x-company-code'] !== 'sensteed') { res.writeHead(403).end(); return }
+        res.setHeader('content-type', 'application/json')
+        res.end(JSON.stringify({
+          key: 'sk-mock-composition-test', rotated: false,
+          user: { ssoSub: 'mock-user', name: 'Mock User' },
+        }))
+        return
+      }
+      res.writeHead(404).end()
     })
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -76,8 +65,7 @@ async function mockPlatform() {
   origin = `http://127.0.0.1:${String(address.port)}`
   return {
     origin,
-    failExchange: (value: boolean) => { failExchange = value },
-    callback: () => `${init.redirect_uri}?code=test&state=${init.state}`,
+    failToken: (value: boolean) => { failToken = value },
     close: () => new Promise<void>((resolve) => { server.close(() => { resolve() }); server.closeAllConnections() }),
   }
 }
@@ -87,7 +75,7 @@ describe.skipIf(!existsSync(builtHost))('built Desktop welcome flow', () => {
     vi.stubEnv('DSH_CLIENT_VERSION', '1.2.3')
     const root = mkdtempSync(join(tmpdir(), 'dsh-desktop-welcome-'))
     let host: DesktopHostProcess | undefined
-    const platform = await mockPlatform()
+    const gateway = await mockGateway()
     try {
       for (const name of Object.keys(process.env)) {
         if (/KEY|TOKEN|SECRET|PASSWORD/u.test(name)) vi.stubEnv(name, undefined)
@@ -121,14 +109,19 @@ describe.skipIf(!existsSync(builtHost))('built Desktop welcome flow', () => {
         dsh: project,
       })
       await manager.applyRelease()
-      writeFileSync(join(paths.profile, 'cordis.patch.yml'), `- id: webserver\n  config:\n    host: 127.0.0.1\n    port: 0\n- id: deepseek-account\n  config:\n${process.platform === 'linux' ? '    desktopPlatform: darwin\n' : ''}    platformOrigin: ${platform.origin}\n    allowLoopbackHttp: true\n    requestHeaders:\n      Cookie: test_gate=synthetic\n`)
+      writeFileSync(join(paths.profile, 'cordis.patch.yml'), `- id: webserver\n  config:\n    host: 127.0.0.1\n    port: 0\n- id: deepseek-account\n  config:\n    ssoApiOrigin: ${gateway.origin}\n    gatewayApiOrigin: ${gateway.origin}\n    credentialRefName: SENSTEED_GATEWAY_API_KEY\n    allowLoopbackHttp: true\n`)
       let backend: DesktopWelcomeBackend
-      let hostOrigin = ''
+      let hostUrl = ''
+      /** Callback for the Host webServer, echoing the live attempt's state parameter. */
+      const callbackFor = (authorizeUrl: string | undefined): string => {
+        const state = authorizeUrl === undefined ? '' : new URL(authorizeUrl).searchParams.get('state') ?? ''
+        return `http://127.0.0.1:${new URL(hostUrl).port}/callback?code=test&state=${state}`
+      }
       const restart = async (): Promise<void> => {
         await host?.stop()
         host = new DesktopHostProcess(process.execPath, project, paths.profile)
         const { url } = await host.start()
-        hostOrigin = new URL(url).origin
+        hostUrl = url
         let cookie = ''
         const send: typeof fetch = async (input, init) => {
           const headers = new Headers(init?.headers)
@@ -159,34 +152,36 @@ describe.skipIf(!existsSync(builtHost))('built Desktop welcome flow', () => {
       expect(await status()).toMatchObject({ hasApiKey: true })
       await backend!.account.start(desktopClientMetadata('en'))
       await expect.poll(async () => (await backend!.account.state()).attempt?.phase).toBe('waiting-browser')
-      expect(new URL(platform.callback()).origin).toBe(hostOrigin)
-      platform.failExchange(true)
-      const failed = await fetch(platform.callback(), { redirect: 'manual' })
+      const waiting = await backend!.account.state()
+      const callbackUrl = callbackFor(waiting.attempt?.authorizeUrl)
+      expect(new URL(callbackUrl).pathname).toBe('/callback')
+      await gateway.failToken(true)
+      const failed = await fetch(callbackUrl, { redirect: 'manual' })
       expect(failed.status).toBe(204)
       expect(await backend!.account.state()).toMatchObject({ status: 'signed-out', attempt: { phase: 'failed' } })
       expect(await status()).toMatchObject({ hasApiKey: true, loggedIn: false })
-      platform.failExchange(false)
+      gateway.failToken(false)
       await backend!.account.start(desktopClientMetadata('en'))
       await expect.poll(async () => (await backend!.account.state()).attempt?.phase).toBe('waiting-browser')
-      const response = await fetch(platform.callback(), { redirect: 'manual' })
-      expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${platform.origin}/dsh/authorized?result=test&locale=zh_CN&login_source=desktop`)
+      const response = await fetch(callbackFor((await backend!.account.state()).attempt?.authorizeUrl), { redirect: 'manual' })
+      expect(response.status).toBe(204)
+      await expect.poll(async () => (await backend!.account.state()).status).toBe('credential-stored')
       expect(await status()).toMatchObject({ hasApiKey: true, loggedIn: true })
       await restart()
       expect(await status()).toMatchObject({ hasApiKey: true, loggedIn: true })
-      // A failed remote logout must not block local sign-out through the real Host composition.
+      // Sign-out removes the key reference and record locally; the gateway keeps no session to revoke.
       await backend!.account.signOut(desktopClientMetadata('en'))
       expect(await status()).toMatchObject({ hasApiKey: true, loggedIn: false })
       await backend!.account.start(desktopClientMetadata('en'))
       await expect.poll(async () => (await backend!.account.state()).attempt?.phase).toBe('waiting-browser')
-      const waiting = await backend!.account.state()
-      const late = platform.callback()
-      await backend!.account.cancel(waiting.attempt!.id)
-      expect((await fetch(late, { redirect: 'manual' })).status).not.toBe(302)
+      const lateWaiting = await backend!.account.state()
+      const late = callbackFor(lateWaiting.attempt?.authorizeUrl)
+      await backend!.account.cancel(lateWaiting.attempt!.id)
+      expect((await fetch(late, { redirect: 'manual' })).status).not.toBe(204)
       expect(await status()).toMatchObject({ loggedIn: false })
     } finally {
       await host?.stop()
-      await platform.close()
+      await gateway.close()
       rmSync(root, { recursive: true, force: true })
     }
   })
