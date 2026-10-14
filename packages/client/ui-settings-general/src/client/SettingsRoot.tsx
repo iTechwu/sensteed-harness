@@ -16,7 +16,8 @@ import clsx from 'clsx'
 import {
   ConnectionIndicator, Tooltip, useModalLayer,
   IconAgentPresetOutlineMedium, IconArchiveOutlineMedium, IconCloseOutlineRegular, IconDataOutlineMedium,
-  IconPersonalizationOutlineMedium, IconSettingsOutlineMedium, IconUserOutlineMedium,
+  IconPanelLeftOutlineMedium, IconPluginPinwheelOutlineMedium,
+  IconSettingsOutlineMedium, IconSkillOutlineMedium, IconUserOutlineMedium, IconUsersOutlineMedium,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ConnectionIndicatorState } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SettingsRootComponentProps, SettingsSectionRow } from './shell-contract.ts'
@@ -30,10 +31,14 @@ const CONNECTING_MIN_VISIBLE_MS = 800
 
 /** Nav glyph by section id; unknown ids fall back to the settings gear. */
 function navIcon(id: string) {
-  if (id === 'account') return <IconUserOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'account' || id === 'dofe-access' || id === 'user-settings') return <IconUserOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'general') return <IconSettingsOutlineMedium className={css.navIcon} size={16} />
   if (id === 'models') return <IconDataOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'skills' || id === 'skill-manager') return <IconSkillOutlineMedium className={css.navIcon} size={16} />
   if (id === 'agent-presets') return <IconAgentPresetOutlineMedium className={css.navIcon} size={16} />
-  if (id === 'plugins') return <IconPersonalizationOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'plugins' || id === 'built-in-plugins') return <IconPluginPinwheelOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'im' || id === 'im-robot' || id === 'sensteed-im' || id === 'connect-im') return <IconUsersOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'desktop') return <IconPanelLeftOutlineMedium className={css.navIcon} size={16} />
   if (id === 'archived-sessions') return <IconArchiveOutlineMedium className={css.navIcon} size={16} />
   return <IconSettingsOutlineMedium className={css.navIcon} size={16} />
 }

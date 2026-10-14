@@ -390,24 +390,28 @@ describe('SettingsPanel navigation', () => {
     mount({
       rows: [
         { id: 'general', order: 0, label: 'General' },
-        { id: 'models', order: 10, label: 'Models' },
-        { id: 'agent-presets', order: 20, label: 'Agent presets' },
-        { id: 'plugins', order: 30, label: 'Plugins' },
-        { id: 'archived-sessions', order: 40, label: 'Archived sessions' },
-        { id: 'contributed', order: 50, label: 'Contributed' },
+        { id: 'dofe-access', order: 10, label: 'User settings' },
+        { id: 'models', order: 20, label: 'Models' },
+        { id: 'skills', order: 30, label: 'Skills' },
+        { id: 'built-in-plugins', order: 40, label: 'Built-in plugins' },
+        { id: 'agent-presets', order: 50, label: 'Agent presets' },
+        { id: 'im-robot', order: 60, label: 'IM robot' },
+        { id: 'desktop', order: 70, label: 'Desktop' },
+        { id: 'archived-sessions', order: 80, label: 'Archived sessions' },
+        { id: 'contributed', order: 90, label: 'Contributed' },
       ],
     })
     openPanel()
     // Per-instance clip-path ids differ even when the drawn icon is identical.
-    const glyphs = ['General', 'Models', 'Agent presets', 'Plugins', 'Archived sessions', 'Contributed']
+    const glyphs = ['General', 'User settings', 'Models', 'Skills', 'Built-in plugins', 'Agent presets', 'IM robot', 'Desktop', 'Archived sessions', 'Contributed']
       .map(name => Array.from(screen.getByRole('button', { name }).querySelectorAll('svg path'))
         .map(path => path.getAttribute('d')).join('|'))
 
     expect(glyphs.every(glyph => glyph !== undefined && glyph !== '')).toBe(true)
-    // The four ids the shell names get their own glyph; every other section —
-    // including one this package never heard of — shares the gear.
-    expect(new Set(glyphs.slice(0, 5)).size).toBe(5)
-    expect(glyphs[5]).toBe(glyphs[0])
+    // Product-owned sections receive semantic glyphs, while an unknown
+    // contribution keeps the settings gear as a deliberate fallback.
+    expect(new Set(glyphs.slice(0, 9)).size).toBe(9)
+    expect(glyphs[9]).toBe(glyphs[0])
   })
 
   it('switches the rendered section on nav click', () => {
