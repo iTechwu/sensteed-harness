@@ -35,12 +35,12 @@ export interface Config {
   gatewayApiOrigin?: string
   /** Credentials ref the provisioned gateway key is written to and read from. */
   credentialRefName?: string
-  /** Allow HTTP only on loopback for the development Mock. */
-  allowLoopbackHttp?: boolean
-  /** Deadline for each gateway HTTP request. */
-  requestTimeoutMs?: number
-  /** Upper bound for the entire local attempt, even if the server advertises a longer TTL. */
-  attemptTimeoutMs?: number
+  /** Allow HTTP only on loopback for the development Mock (default false). */
+  allowLoopbackHttp: boolean
+  /** Deadline for each gateway HTTP request (default 30,000). */
+  requestTimeoutMs: number
+  /** Upper bound for the entire local attempt, even if the server advertises a longer TTL (default 600,000). */
+  attemptTimeoutMs: number
 }
 /** Validated deployment choices. */
 export const Config = Schema.object({
@@ -80,9 +80,12 @@ export class PlatformAccount extends DeepSeekAccount {
   private removing: Promise<AccountView> | undefined
 
   /** @param ctx - Host with authorization and credentials services. @param config - deployment options. */
-  constructor(ctx: Context, config: Config = {}) {
+  constructor(ctx: Context, config: Partial<Config> = {}) {
     super(ctx)
-    const resolved = Config(config)
+    // Schemastery passes omitted deployment origins through as undefined; the
+    // optional interface fields (not the schema's inferred required shape) are
+    // the runtime contract, and requireDeployment gates their use.
+    const resolved: Config = Config(config)
     this.ssoApiOrigin = resolved.ssoApiOrigin === undefined
       ? undefined
       : apiOrigin(resolved.ssoApiOrigin, resolved.allowLoopbackHttp)
@@ -222,9 +225,9 @@ export class PlatformAccount extends DeepSeekAccount {
     }
   }
 
-  override async getPlatformSession(): Promise<null> {
+  override getPlatformSession(): Promise<null> {
     // The gateway has no embedded account pages; desktop consumers treat null as not embedded.
-    return null
+    return Promise.resolve(null)
   }
 
   private async readCurrentRecord(): Promise<z.infer<typeof record> | null> {
@@ -257,10 +260,13 @@ export class PlatformAccount extends DeepSeekAccount {
       return this.getState()
     }
     const previous = this.attempt
+    // oxlint-disable-next-line no-unnecessary-condition -- 同上：await 期间并发入口可能已装入新 attempt
     if (previous !== undefined) {
       await previous.done
       // Disposal can close the provider while the previous attempt settles.
+      // oxlint-disable-next-line no-unnecessary-condition -- 关闭同样可能发生在 await 期间，TS 的窄化看不到并发翻转
       if (this.closed) throw new PlatformAuthError('protocol')
+      // oxlint-disable-next-line no-unnecessary-condition -- 并发的 startSignIn 会在 await 期间更换 this.attempt；该守卫防御 await 恢复后的身份变化
       if (this.attempt !== previous) return this.getState()
     }
     const attempt: Attempt = {
@@ -433,22 +439,17 @@ export class PlatformAccount extends DeepSeekAccount {
       attempt.callback.writeHead(204, { 'cache-control': 'no-store' }).end()
       return
     }
-    if (attempt.loginSource === 'web') {
-      const nonce = randomBytes(16).toString('base64url')
-      const successMessage = attempt.locale === 'zh_CN' ? '登录成功，请关闭此标签页。' : 'Sign-in succeeded. Close this tab.'
-      const failureMessage = attempt.locale === 'zh_CN' ? '登录失败，请关闭此标签页并在原页面重试。'
-        : 'Sign-in failed. Close this tab and try again in the original tab.'
-      const message = authorized ? successMessage : failureMessage
-      attempt.callback.writeHead(200, {
-        'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store',
-        'content-security-policy': `default-src 'none'; script-src 'nonce-${nonce}'; frame-ancestors 'none'`,
-        'referrer-policy': 'no-referrer',
-      }).end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${message}</title>`
-        + `<body><p>${message}</p><script nonce="${nonce}">window.close()</script></body></html>`)
-    } else {
-      // Native account subscribers focus the login window; the browser tab needs no document.
-      attempt.callback.writeHead(204, { 'cache-control': 'no-store' }).end()
-    }
+    const nonce = randomBytes(16).toString('base64url')
+    const successMessage = attempt.locale === 'zh_CN' ? '登录成功，请关闭此标签页。' : 'Sign-in succeeded. Close this tab.'
+    const failureMessage = attempt.locale === 'zh_CN' ? '登录失败，请关闭此标签页并在原页面重试。'
+      : 'Sign-in failed. Close this tab and try again in the original tab.'
+    const message = authorized ? successMessage : failureMessage
+    attempt.callback.writeHead(200, {
+      'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store',
+      'content-security-policy': `default-src 'none'; script-src 'nonce-${nonce}'; frame-ancestors 'none'`,
+      'referrer-policy': 'no-referrer',
+    }).end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${message}</title>`
+      + `<body><p>${message}</p><script nonce="${nonce}">window.close()</script></body></html>`)
   }
 }
 export default PlatformAccount

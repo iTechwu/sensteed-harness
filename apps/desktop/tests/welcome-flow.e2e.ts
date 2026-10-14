@@ -155,7 +155,7 @@ describe.skipIf(!existsSync(builtHost))('built Desktop welcome flow', () => {
       const waiting = await backend!.account.state()
       const callbackUrl = callbackFor(waiting.attempt?.authorizeUrl)
       expect(new URL(callbackUrl).pathname).toBe('/callback')
-      await gateway.failToken(true)
+      gateway.failToken(true)
       const failed = await fetch(callbackUrl, { redirect: 'manual' })
       expect(failed.status).toBe(204)
       expect(await backend!.account.state()).toMatchObject({ status: 'signed-out', attempt: { phase: 'failed' } })

@@ -43,7 +43,7 @@ async function fixture(config: Partial<Config> = {},
     if (req.url === '/oauth/token') {
       req.setEncoding('utf8')
       let text = ''
-      for await (const chunk of req) text += chunk
+      for await (const chunk of req) text += String(chunk)
       const body = JSON.parse(text) as Record<string, string>
       tokenRequests.push(body)
       tokenReceived.resolve(undefined)
@@ -57,7 +57,7 @@ async function fixture(config: Partial<Config> = {},
     }
     if (req.url === '/auth/desktop/provision-key') {
       provisionRequests.push({
-        authorization: req.headers.authorization as string | undefined,
+        authorization: req.headers.authorization,
         companyCode: req.headers['x-company-code'] as string | undefined,
       })
       provisionReceived.resolve(undefined)
@@ -129,7 +129,7 @@ async function fixture(config: Partial<Config> = {},
     failToken: (status: number, body: unknown) => { tokenState = { status, body } },
     failProvision: (status: number, body: unknown = {}) => { provisionState = { status, body } },
     holdToken: () => { holdToken = true },
-    releaseToken: () => tokenReleased.resolve(undefined),
+    releaseToken: () => { tokenReleased.resolve(undefined) },
     credentialsPath: join(home, 'credentials.yaml'),
   }
 }
@@ -147,7 +147,7 @@ it('constructs the SSO authorize URL with the registered desktop client and loop
   expect(authorize.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/)
   const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '')
   expect(redirect.pathname).toBe('/callback')
-  expect(redirect.port).toBe(String(new URL(f.callbackOrigin).port))
+  expect(redirect.port).toBe(new URL(f.callbackOrigin).port)
   await f.account.cancelSignIn(state.attempt!.id)
 })
 
