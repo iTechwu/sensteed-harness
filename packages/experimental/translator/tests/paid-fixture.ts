@@ -24,6 +24,8 @@ export interface NativeRequest {
   body: Record<string, unknown>
   accountAuth: boolean
   officialAuth: boolean
+  /** The x-api-key credential value the owner authenticated with. */
+  apiKeyHeader: string | undefined
   sessionHeader: boolean
   audit: readonly SessionEvent[]
 }
@@ -98,7 +100,7 @@ export async function paidFixture(cleanups: Array<() => Promise<void>>, options:
       if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) throw new Error('Expected native Messages request object')
       const input: NativeRequest = { path: request.url ?? '', body: payload as Record<string, unknown>,
         accountAuth: request.headers['x-api-key'] === 'fixture-account-token', officialAuth: request.headers['x-api-key'] === 'fixture-native-key',
-        apiKeyHeader: request.headers['x-api-key'],
+        apiKeyHeader: typeof request.headers['x-api-key'] === 'string' ? request.headers['x-api-key'] : undefined,
         sessionHeader: request.headers['x-deepseek-harness-session-id'] !== undefined,
         audit: await readEvents(auditId) }
       requests.push(input)
