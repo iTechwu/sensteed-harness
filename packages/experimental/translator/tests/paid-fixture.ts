@@ -97,7 +97,8 @@ export async function paidFixture(cleanups: Array<() => Promise<void>>, options:
       const payload: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'))
       if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) throw new Error('Expected native Messages request object')
       const input: NativeRequest = { path: request.url ?? '', body: payload as Record<string, unknown>,
-        accountAuth: request.headers['x-dsh-auth-token'] !== undefined, officialAuth: request.headers['x-api-key'] !== undefined,
+        accountAuth: request.headers['x-api-key'] === 'fixture-account-token', officialAuth: request.headers['x-api-key'] === 'fixture-native-key',
+        apiKeyHeader: request.headers['x-api-key'],
         sessionHeader: request.headers['x-deepseek-harness-session-id'] !== undefined,
         audit: await readEvents(auditId) }
       requests.push(input)

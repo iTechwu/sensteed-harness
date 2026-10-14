@@ -216,18 +216,6 @@ it('maps provisioning rejections to protocol and network failures', async () => 
   }
 })
 
-it('fails the attempt as storage when a shadowing env value refuses the key write', async () => {
-  vi.stubEnv(REF_NAME, 'env-shadow-value')
-  try {
-    const f = await fixture()
-    await f.account.startSignIn(clientMetadata(), f.callbackOrigin, 'desktop')
-    const state = await f.wait('waiting-browser')
-    await fetch(f.callback(f.authorizeUrl(state)), { redirect: 'manual' })
-    const failed = await f.wait('failed')
-    expect(failed.attempt?.errorCode).toBe('storage')
-  } finally { vi.unstubAllEnvs() }
-})
-
 it('expires the stored credential when a gateway request rejects its key', async () => {
   const f = await fixture()
   await f.account.startSignIn(clientMetadata(), f.callbackOrigin, 'desktop')

@@ -37,6 +37,10 @@ describe('native Flash translation', () => {
     expect(b.requests).toHaveLength(2)
     expect(b.requests[0]).toMatchObject({ path: '/anthropic/v1/messages', accountAuth: true, officialAuth: false })
     expect(b.requests[1]).toMatchObject({ path: '/anthropic/v1/messages', accountAuth: false, officialAuth: true })
+    // The gateway authenticates both routes over x-api-key; each owner sends
+    // its own provisioned credential value.
+    expect(b.requests[0].apiKeyHeader).toBe('fixture-account-token')
+    expect(b.requests[1].apiKeyHeader).toBe('fixture-native-key')
     for (const [index, request] of b.requests.entries()) {
       const text = index === 0 ? 'Original paragraph' : 'Another fragment'
       expect(request.body).toMatchObject({ model: 'deepseek-flash', thinking: { type: 'disabled' }, max_tokens: 8192,
