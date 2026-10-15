@@ -249,7 +249,8 @@ export async function probe(absolutePath: string): Promise<PathInfo | null> {
   if (!info) return null
   return {
     version: versionOf(info),
-    mode: Number(info.mode & 0o777n),
+    // Electron 的 asar fs shim 不完整支持 bigint stat(mode 可能是 Number),按 Number 归一后再取权限位。
+    mode: Number(info.mode) & 0o777,
     type: pathType(info),
     size: Number(info.size),
   }
@@ -265,7 +266,8 @@ export async function probeNoFollow(absolutePath: string): Promise<PathLinkInfo 
   if (!info) return null
   return {
     version: versionOf(info),
-    mode: Number(info.mode & 0o777n),
+    // Electron 的 asar fs shim 不完整支持 bigint stat(mode 可能是 Number),按 Number 归一后再取权限位。
+    mode: Number(info.mode) & 0o777,
     type: pathLinkType(info),
     size: Number(info.size),
   }
