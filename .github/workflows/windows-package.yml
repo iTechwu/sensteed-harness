@@ -90,7 +90,7 @@ jobs:
           const v=JSON.parse(fs.readFileSync('package.json','utf8')).version;
           if(ref!=='master' && ref!=='dsh-v'+v) throw Error('Source tag must match product version');
           if(!fs.readFileSync('apps/desktop/scripts/desktop-ci-version.mjs','utf8').includes('PACKAGE_VERSION_MODE')) throw Error('Source lacks Desktop channel/version CI support; select a newer release');"
-      - uses: pnpm/action-setup@v5.0.0
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
       - uses: actions/setup-node@v7.0.0
