@@ -24,8 +24,11 @@
   en: 78ac4e731c6a24c1
   zh: e8c33db4aa0cc527
 /deepseek-ai-dsh-skill-filesystem/use-this-package/roots-and-priority:
-  en: 265594f30ba5d848
-  zh: 5de6a94864cab8d6
+  en: c01230a9cd6793b3
+  zh: 53a0f5f79597f888
+/deepseek-ai-dsh-skill-filesystem/use-this-package/host-selected-generation-roots:
+  en: 6f311d6ddca4fb1a
+  zh: abc5037b9c49a5cc
 /deepseek-ai-dsh-skill-filesystem/use-this-package/mount-and-configure:
   en: 5e7a4ff37f33f8a5
   zh: 2f6dd45e696cb92b

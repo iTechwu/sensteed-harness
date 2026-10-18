@@ -10,6 +10,7 @@
     { "path": "../../../vendor/cordis" },
     { "path": "../../../vendor/schemastery" },
     { "path": "../../fs/fs" },
+    { "path": "../../core/scope" },
     { "path": "../../util/home-paths" },
     { "path": "../skill" }
   ]

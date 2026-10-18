@@ -80,6 +80,8 @@ The project root is the nearest ancestor containing `.git`; without one, the cur
 
 Chokidar watches existing roots for direct bundle/flat-entry additions and removals plus direct skill-entry changes. A missing root is followed one absent path segment at a time from its nearest existing ancestor until Chokidar can attach. Resource files below a bundle are not catalog changes. Model-facing `write` and `edit` observations synchronously invalidate the provider when their target is catalog-relevant, while the host watcher covers IDE, Git, shell, and external-process mutations. Watcher failures make the current observation incomplete without hiding readable candidates from direct loads; project-scoped watchers use a configured bounded LRU.
 
+A Host-owned filesystem generation can replace this provider's ordinary roots through `installFilesystemSkillRootPolicy` before composition. Its sole named global provider reads approved Host directories; scoped filesystem providers and all ordinary root defaults/configuration contribute nothing while the policy is installed. The owner must verify immutable contents before selection. Other provider kinds and skill-registry scope precedence remain independent. See [Host-selected generation roots](../../packages/skill/skill-filesystem/README.md#host-selected-generation-roots) for lifecycle and locator checks.
+
 ## Skill identity
 
 Skill names are kebab-case (`^[a-z0-9]+(?:-[a-z0-9]+)*$`). The local provider accepts directory bundles (`<name>/SKILL.md`) and flat Markdown files (`<name>.md`). Nested recursive `**/SKILL.md` discovery is not supported.
@@ -243,6 +245,14 @@ The model-facing `skill({ name })` tool validates the kebab-case name, finds the
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxfilesystemskillroots--filesystemskillrootpolicy"></a>
+
+### `ctx.filesystemSkillRoots` — `FilesystemSkillRootPolicy`
+
+Host-selected immutable filesystem roots for one application generation.
+
+Source: [`packages/skill/skill-filesystem/src/index.ts`](../../packages/skill/skill-filesystem/src/index.ts)
 
 <a id="ctxsessionskillcatalog--sessionskillcatalog"></a>
 
