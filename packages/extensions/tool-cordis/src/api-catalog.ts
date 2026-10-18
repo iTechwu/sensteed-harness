@@ -1066,6 +1066,28 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'filesystemSkillRoots',
+    summary: 'Host-selected immutable filesystem roots for one application generation.',
+    description: 'Host-selected immutable filesystem roots for one application generation.',
+    methods: [
+      {
+        signature: 'readonly generationId: string',
+        description: 'Verified generation identity selected by the Host.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly providerName: string',
+        description: 'Only this Host-mounted provider may discover the selected roots.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly roots: readonly { readonly path: string; readonly source: SkillSource; readonly rank: number }[]',
+        description: 'Ordered Host directories with explicit catalog source and precedence.',
+        parameters: [],
+      },
+    ],
+  },
+  {
     key: 'fileUploads',
     summary: 'Host service owning upload storage and receipts keyed by each receiving Agent\'s exact Session.',
     description: 'Host service owning upload storage and receipts keyed by each receiving Agent\'s exact Session.',

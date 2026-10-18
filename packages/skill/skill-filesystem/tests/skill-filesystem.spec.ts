@@ -181,6 +181,44 @@ describe('dsh-skill-filesystem plugin exports', () => {
 })
 
 describe('FileSystemSkillProvider', () => {
+  it('seals Host roots against default, custom, environment and preset-provider overrides', async () => {
+    const home = await tempDir('sealed-skill-home')
+    const project = await tempDir('sealed-skill-project')
+    const hub = join(home, 'hub')
+    await writeSkill(hub, 'same', 'Verified Hub skill')
+    await writeSkill(join(project, '.dsh/skills'), 'same', 'Project override')
+    await writeSkill(join(home, '.dsh/skills'), 'user-only', 'User override')
+    await writeSkill(join(home, 'custom'), 'custom-only', 'Custom override')
+    const ctx = new Context()
+    try {
+      const roots = [{ path: hub, source: 'hub', rank: 100 }]
+      SkillFileSystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g1', providerName: 'hub-g1', roots })
+      roots[0]!.path = join(home, 'custom')
+      await ctx.plugin(SkillRegistry)
+      await ctx.plugin(SkillFileSystem, { providerName: 'preset', dshHome: join(home, '.dsh'),
+        customSkillDirs: [join(home, 'custom')], bundledSkillDir: join(home, 'custom'), watch: false })
+      await ctx.plugin(SkillFileSystem, { providerName: 'hub-g1', watch: false })
+      const listed = await ctx.skills.list({ cwd: project })
+      expect(listed.map(skill => ({ name: skill.name, description: skill.description, provider: skill.provider, source: skill.source })))
+        .toEqual([{ name: 'same', description: 'Verified Hub skill', provider: 'hub-g1', source: 'hub' }])
+      expect((await ctx.skills.get('same', { cwd: project }))?.content).toContain('Use the skill.')
+      expect(Object.isFrozen(ctx.get('filesystemSkillRoots')!.roots)).toBe(true)
+      expect(() => SkillFileSystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g2', providerName: 'hub-g2', roots: [] }))
+        .toThrow('already sealed')
+    } finally { await ctx.fiber.dispose() }
+    expect(ctx.get('filesystemSkillRoots')).toBeUndefined()
+  })
+
+  it('rejects unbounded, relative and duplicate Host roots before registration', () => {
+    const ctx = new Context()
+    expect(() => SkillFileSystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g1', providerName: 'hub-g1', roots: [{ path: 'relative', source: 'hub', rank: 1 }] }))
+      .toThrow('Invalid filesystem skill root')
+    expect(() => SkillFileSystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g1', providerName: 'hub-g1', roots: [
+      { path: tmpdir(), source: 'hub', rank: 1 }, { path: tmpdir(), source: 'hub', rank: 1 },
+    ] })).toThrow('Duplicate')
+    expect(ctx.get('filesystemSkillRoots')).toBeUndefined()
+  })
+
   it('discovers project, custom, user, and agents skill roots in priority order', async () => {
     const home = await tempDir('skill-home')
     const project = await tempDir('skill-project')

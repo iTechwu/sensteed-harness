@@ -121,6 +121,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   settings: 'settings.md',
   sessionTitle: 'session-title.md',
   skills: 'skills.md',
+  filesystemSkillRoots: 'skills.md',
   spillStore: 'spill.md',
   storage: 'storage.md',
   storageDomain: 'storage.md',

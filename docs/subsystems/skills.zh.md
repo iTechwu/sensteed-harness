@@ -80,6 +80,8 @@ interface SkillProviderControl {
 
 Chokidar 会监视现有根目录中直属 bundle 和平铺条目的添加与移除，以及直属 skill 条目的变更。缺失的根目录会从最近的现有祖先开始，逐个跟踪缺失路径段，直至 Chokidar 可以附加。bundle 下的资源文件变更不属于目录变更。面向模型的 `write` 和 `edit` 观测会在目标路径与目录相关时同步使提供方目录失效，而宿主 watcher 覆盖 IDE、Git、shell 和外部进程产生的变更。watcher 失败会使当前观测不完整，但不会在直接加载时隐藏可读候选项；项目作用域 watcher 使用按配置设限的 LRU。
 
+Host 可在组合前通过 `installFilesystemSkillRootPolicy`，用所属文件系统 generation 替换该提供方的普通根。唯一指定的全局提供方读取允许的 Host 目录；安装策略期间，scoped 文件系统提供方以及所有普通根默认值和配置均不贡献内容。所有者必须在选择前验证不可变内容。其他种类的提供方和 skill 注册表的 scope 优先级仍独立运作。生命周期和 locator 检查见[Host 选择的 generation 根目录](../../packages/skill/skill-filesystem/README.zh.md#host-selected-generation-roots)。
+
 ## skill 身份
 
 skill 名称为 kebab-case（`^[a-z0-9]+(?:-[a-z0-9]+)*$`）。本地提供方接受目录包（`<name>/SKILL.md`）和扁平 Markdown 文件（`<name>.md`）。嵌套递归的 `**/SKILL.md` 发现不受支持。
@@ -243,6 +245,14 @@ interface Config {
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxfilesystemskillroots--filesystemskillrootpolicy"></a>
+
+### `ctx.filesystemSkillRoots` — `FilesystemSkillRootPolicy`
+
+Host-selected immutable filesystem roots for one application generation.
+
+Source: [`packages/skill/skill-filesystem/src/index.ts`](../../packages/skill/skill-filesystem/src/index.ts)
 
 <a id="ctxsessionskillcatalog--sessionskillcatalog"></a>
 

@@ -612,6 +612,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Durably checkpoints projection unit states per session (throttled + turn/end/detach mandatory points), serves cached projection views, and accelerates prepared-Session projection hydration.',
   },
   {
+    key: 'filesystemSkillRoots',
+    pkg: 'skill-filesystem',
+    title: 'Host filesystem generation roots',
+    mode: 'core',
+    consumers: ['skill-filesystem'],
+    note: 'The Host seals one filesystem provider identity and its immutable generation roots before composition; scoped providers cannot replace the policy.',
+  },
+  {
     key: 'skills',
     pkg: 'skill',
     title: 'Skill provider registry',
