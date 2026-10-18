@@ -16,7 +16,7 @@ afterEach(async () => {
   for (const ctx of contexts.splice(0)) await ctx.fiber.dispose()
   for (const dir of dirs.splice(0)) await rm(dir, { recursive: true, force: true })
 })
-async function setup() {
+async function setup(user=false) {
   const dir = await mkdtemp(join(tmpdir(), 'dsh-host-policy-'))
   dirs.push(dir)
   const root = join(dir, 'trusted')
@@ -26,7 +26,7 @@ async function setup() {
   await writeFile(join(root, 'safe.md'), '---\nname: safe\ndescription: Trusted skill\n---\nHost content')
   const ctx = new Context()
   contexts.push(ctx)
-  filesystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g1', providerName: 'hub-generation', roots:[{ path:root, source: 'hub', rank: 100 }] })
+  filesystem.installFilesystemSkillRootPolicy(ctx, { generationId: 'g1', providerName: 'hub-generation', roots:[{ path:root, source: 'hub', rank: 100 }],...(user?{ userRoots:[join(dir,'untrusted')] }:{}) })
   return { ctx, dir, root }
 }
 describe('Host-only filesystem roots through real Cordis Loader', () => {
@@ -53,6 +53,22 @@ describe('Host-only filesystem roots through real Cordis Loader', () => {
     expect((await ctx.skills.list({ scope:scopeOf(scoped.ctx) })).map(s => [s.name,s.provider,s.source])).toEqual([['safe','hub-generation','hub']])
     expect((await ctx.skills.get('safe'))?.content).toContain('Host content')
     expect(() => filesystem.installFilesystemSkillRootPolicy(scoped.ctx,{ generationId: 'g2', providerName: 'other', roots:[] })).toThrow('Host context')
+  })
+  it('keeps explicit user skills reachable under a separate namespace and rejects user source impersonation',async()=>{
+    const { ctx,dir }=await setup(true)
+    ctx.baseUrl=pathToFileURL(dir).href+'/'
+    await ctx.plugin(Loader);ctx.loader.builtins.include=Include
+    const modules=new Map<string,unknown>([['@deepseek-ai/dsh-skill',SkillRegistry],['@deepseek-ai/dsh-skill-filesystem',filesystem]])
+    ctx.loader.internal={ version:'v2',loadCache:new Map(),async import(name:string){if(!modules.has(name))throw new Error('Unexpected module');return modules.get(name)},register():never{throw new Error('Unexpected hook')},getOrCreateModuleJob():never{throw new Error('Unexpected job')},resolveSync():never{throw new Error('Unexpected resolve')},load():never{throw new Error('Unexpected load')} }
+    await ctx.loader.create({ name:'cordis:include',config:{ path:new URL('./fixtures/host-policy/cordis.yml',import.meta.url).href } })
+    await ctx.loader.create({ name:'@deepseek-ai/dsh-skill-filesystem',config:{ providerName:'user-local',includeDefaultRoots:false,watch:false } });await ctx.loader.await()
+    expect((await ctx.skills.list()).map(s=>[s.name,s.provider,s.source]).sort()).toEqual([['safe','hub-generation','hub'],['user-local-rogue','user-local','user-local']])
+    expect((await ctx.skills.get('user-local-rogue'))?.content).toContain('Untrusted content')
+    const provider=new filesystem.FileSystemSkillProvider(ctx,{ invalidate(){},signal:new AbortController().signal },{ providerName:'user-local',watch:false }),observation=await provider.list({}),candidate=Array.isArray(observation)?observation[0]:observation.candidates[0]
+    if(!candidate)throw new Error('Missing user skill')
+    expect(await provider.get({ ...candidate,source:'hub' },{})).toBeUndefined()
+    const scoped=createScope(ctx,{ agent:'user-test' });await scoped.ctx.plugin(filesystem,{ providerName:'user-local',customSkillDirs:[dir],watch:false })
+    expect((await ctx.skills.list({ scope:scopeOf(scoped.ctx) })).map(s=>s.name).sort()).toEqual(['safe','user-local-rogue'])
   })
   it.skipIf(process.platform === 'win32')('rejects forged locators, sources, providers and symlink escapes', async () => {
     const { ctx, dir, root } = await setup()

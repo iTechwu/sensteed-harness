@@ -96,11 +96,13 @@ interface SkillRoot {
   projectRoot?: string
   trustedHost?: boolean
   sealed?: boolean
+  userScoped?: boolean
 }
 
 /** Host-selected immutable filesystem roots for one application generation. */
 export interface FilesystemSkillRootPolicy {
   /** Verified generation identity selected by the Host. */
+  readonly userRoots?: readonly string[]
   readonly generationId: string
   /** Only this Host-mounted provider may discover the selected roots. */
   readonly providerName: string
@@ -128,6 +130,8 @@ export function installFilesystemSkillRootPolicy(ctx: Context, policy: Filesyste
   if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/u.test(policy.generationId)
     || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/u.test(policy.providerName)
     || policy.roots.length > 256) throw new Error('Invalid filesystem skill root policy')
+  if(policy.providerName==='user-local'||(policy.userRoots?.length??0)>32)throw new Error('Invalid user skill root policy')
+  const userRoots=(policy.userRoots??[]).map((path)=>{if(!isAbsolute(path)||path.includes('\0'))throw new Error('Invalid user skill root');return resolve(path)})
   const seen = new Set<string>()
   const roots = policy.roots.map((root) => {
     if (!isAbsolute(root.path) || root.path.includes('\0') || root.source.length === 0 || root.source.length > 120
@@ -138,7 +142,7 @@ export function installFilesystemSkillRootPolicy(ctx: Context, policy: Filesyste
     return Object.freeze({ path, source: root.source, rank: root.rank })
   })
   return ctx.provide('filesystemSkillRoots', Object.freeze({
-    generationId: policy.generationId, providerName: policy.providerName, roots: Object.freeze(roots),
+    generationId: policy.generationId, providerName: policy.providerName, roots: Object.freeze(roots), userRoots:Object.freeze(userRoots),
   }))
 }
 
@@ -257,17 +261,18 @@ export class FileSystemSkillProvider implements SkillProvider {
     const policy = this.ctx.get('filesystemSkillRoots')
     let trustedRoot = false
     if (policy !== undefined) {
-      if (scopeOf(this.ctx) !== undefined || policy.providerName !== this.name || candidate.provider !== this.name
+      if (scopeOf(this.ctx) !== undefined || (policy.providerName !== this.name&&this.name!=='user-local') || candidate.provider !== this.name
         || typeof locator?.path !== 'string' || typeof locator.directory !== 'string') return undefined
-      for (const root of policy.roots) {
+      if(this.name==='user-local'){for(const root of policy.userRoots??[]){if(candidate.source==='user-local'&&candidate.name.startsWith('user-local-')&&await sealedLocator(root,locator))trustedRoot=true}}
+      for (const root of this.name===policy.providerName?policy.roots:[]) {
         if (candidate.source === root.source && await sealedLocator(root.path, locator)) trustedRoot = true
       }
       if (!trustedRoot) return undefined
     }
-    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled' || trustedRoot === true)
+    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled' || trustedRoot === true&&this.name!=='user-local')
     if (parsed === undefined) return undefined
     return {
-      name: parsed.name,
+      name: this.name==='user-local'?`user-local-${parsed.name}`:parsed.name,
       description: parsed.description,
       ...parsed.whenToUse !== undefined ? { whenToUse: parsed.whenToUse } : {},
       invocation: parsed.invocation,
@@ -300,6 +305,7 @@ export class FileSystemSkillProvider implements SkillProvider {
   private async roots(cwd: string | undefined): Promise<SkillRoot[]> {
     const policy = this.ctx.get('filesystemSkillRoots')
     if (policy !== undefined) {
+      if(scopeOf(this.ctx)===undefined&&this.name==='user-local')return(policy.userRoots??[]).map(path=>({ path,source:'user-local',rank:10,sealed:true,userScoped:true }))
       return scopeOf(this.ctx) === undefined && policy.providerName === this.name
         ? policy.roots.map(root => ({ ...root, trustedHost: true, sealed: true }))
         : []
@@ -819,8 +825,9 @@ async function discoverRoot(root: SkillRoot, ctx: Context, provider: string): Pr
     if (root.sealed === true && !await sealedLocator(root.path, locator)) continue
     const parsed = await parseSkillFile(locator.path, ctx, undefined, root.trustedHost === true)
     if (parsed === undefined) continue
+    if(root.sealed===true&&root.userScoped!==true&&parsed.name.startsWith('user-local-'))continue
     skills.push({
-      name: parsed.name,
+      name: root.userScoped===true?`user-local-${parsed.name}`:parsed.name,
       description: parsed.description,
       ...parsed.whenToUse !== undefined ? { whenToUse: parsed.whenToUse } : {},
       invocation: parsed.invocation,
