@@ -15,8 +15,8 @@
   en: 2843d46e95311bce
   zh: ec11bdeb5d3ce818
 /deepseek-ai-dsh-client-ui-settings-general/use-this-package:
-  en: e1655453301ca06e
-  zh: 3316d7b0e5a569c5
+  en: 23fe9866ae6c0402
+  zh: 08a817e3a4c972d4
 /deepseek-ai-dsh-client-ui-settings-general/use-this-package/the-general-section:
   en: e99e598c5045cc44
   zh: ab6bc0e6c9999c0f
@@ -35,6 +35,9 @@
 /deepseek-ai-dsh-client-ui-settings-general/understand-the-implementation/connection-recovery:
   en: e37fb7df883ea356
   zh: c972524e56c6d6c2
+/deepseek-ai-dsh-client-ui-settings-general/understand-the-implementation/host-release-changes:
+  en: d464f726b026c39a
+  zh: c949e5f4d65a639f
 /deepseek-ai-dsh-client-ui-settings-general/understand-the-implementation/document-availability:
   en: ff1aec9eb1a87a79
   zh: eb91ab8bef59742d
