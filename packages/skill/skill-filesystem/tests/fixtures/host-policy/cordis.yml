@@ -1,0 +1,12 @@
+- name: '@deepseek-ai/dsh-skill'
+- name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    providerName: preset-local
+    includeDefaultRoots: true
+    customSkillDirs: [./untrusted]
+    watch: false
+- name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    providerName: hub-generation
+    customSkillDirs: [./untrusted]
+    watch: false

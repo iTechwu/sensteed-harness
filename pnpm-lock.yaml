@@ -13365,6 +13365,9 @@ importers:
         specifier: ^2.4.2
         version: 2.9.0
     devDependencies:
+      '@deepseek-ai/dsh-scope':
+        specifier: workspace:*
+        version: link:../../core/scope
       '@deepseek-ai/cordis':
         specifier: workspace:~
         version: link:../../../vendor/cordis

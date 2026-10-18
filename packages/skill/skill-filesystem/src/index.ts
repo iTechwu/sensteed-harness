@@ -12,6 +12,7 @@
 import { access, lstat, readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { unwatchFile, watchFile, type Stats } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import { scopeOf } from '@deepseek-ai/dsh-scope'
 import type { Context } from '@deepseek-ai/cordis'
 import chokidar from 'chokidar'
 import z from '@deepseek-ai/schemastery'
@@ -94,6 +95,51 @@ interface SkillRoot {
   skipSystem?: boolean
   projectRoot?: string
   trustedHost?: boolean
+  sealed?: boolean
+}
+
+/** Host-selected immutable filesystem roots for one application generation. */
+export interface FilesystemSkillRootPolicy {
+  /** Verified generation identity selected by the Host. */
+  readonly generationId: string
+  /** Only this Host-mounted provider may discover the selected roots. */
+  readonly providerName: string
+  /** Ordered Host directories with explicit catalog source and precedence. */
+  readonly roots: readonly { readonly path: string; readonly source: SkillSource; readonly rank: number }[]
+}
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    filesystemSkillRoots: FilesystemSkillRootPolicy
+  }
+}
+
+/**
+ * Seal Host roots before mounting filesystem providers. This is not plugin Config.
+ * The owning fiber removes the policy on disposal; applications replace a
+ * generation by restarting that fiber/application, never by editing its roots.
+ * @param ctx - trusted application composition owner
+ * @param policy - complete permitted roots and their sole provider identity
+ * @returns the Cordis-owned policy disposer
+ */
+export function installFilesystemSkillRootPolicy(ctx: Context, policy: FilesystemSkillRootPolicy): () => void {
+  if (scopeOf(ctx) !== undefined) throw new Error('Filesystem skill roots require a Host context')
+  if (ctx.get('filesystemSkillRoots') !== undefined) throw new Error('Filesystem skill roots are already sealed')
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/u.test(policy.generationId)
+    || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/u.test(policy.providerName)
+    || policy.roots.length > 256) throw new Error('Invalid filesystem skill root policy')
+  const seen = new Set<string>()
+  const roots = policy.roots.map((root) => {
+    if (!isAbsolute(root.path) || root.path.includes('\0') || root.source.length === 0 || root.source.length > 120
+      || !Number.isSafeInteger(root.rank) || root.rank < 0 || root.rank > 10000) throw new Error('Invalid filesystem skill root')
+    const path = resolve(root.path)
+    if (seen.has(path)) throw new Error('Duplicate filesystem skill root')
+    seen.add(path)
+    return Object.freeze({ path, source: root.source, rank: root.rank })
+  })
+  return ctx.provide('filesystemSkillRoots', Object.freeze({
+    generationId: policy.generationId, providerName: policy.providerName, roots: Object.freeze(roots),
+  }))
 }
 
 interface SkillRootEntry {
@@ -208,7 +254,17 @@ export class FileSystemSkillProvider implements SkillProvider {
    */
   async get(candidate: SkillCandidate, options: SkillLookupOptions): Promise<SkillDefinition | undefined> {
     const locator = candidate.locator as LocalLocator
-    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled')
+    const policy = this.ctx.get('filesystemSkillRoots')
+    let trustedRoot = false
+    if (policy !== undefined) {
+      if (scopeOf(this.ctx) !== undefined || policy.providerName !== this.name || candidate.provider !== this.name
+        || typeof locator?.path !== 'string' || typeof locator.directory !== 'string') return undefined
+      for (const root of policy.roots) {
+        if (candidate.source === root.source && await sealedLocator(root.path, locator)) trustedRoot = true
+      }
+      if (!trustedRoot) return undefined
+    }
+    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled' || trustedRoot === true)
     if (parsed === undefined) return undefined
     return {
       name: parsed.name,
@@ -242,6 +298,12 @@ export class FileSystemSkillProvider implements SkillProvider {
   }
 
   private async roots(cwd: string | undefined): Promise<SkillRoot[]> {
+    const policy = this.ctx.get('filesystemSkillRoots')
+    if (policy !== undefined) {
+      return scopeOf(this.ctx) === undefined && policy.providerName === this.name
+        ? policy.roots.map(root => ({ ...root, trustedHost: true, sealed: true }))
+        : []
+    }
     const roots: SkillRoot[] = []
     if (this.includeDefaultRoots && cwd !== undefined) {
       const projectRoot = await findProjectRoot(resolve(cwd), optionalFileSystem(this.ctx))
@@ -727,6 +789,22 @@ function hasErrorCode(error: unknown, code: string): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
 
+/** Enforce the one-level locator shape and canonical containment before Host I/O. */
+async function sealedLocator(root: string, locator: LocalLocator): Promise<boolean> {
+  const path = resolve(locator.path), directory = resolve(locator.directory)
+  const rel = relative(root, path).split(sep)
+  if (directory !== dirname(path) || !((rel.length === 1 && rel[0]?.endsWith('.md'))
+    || (rel.length === 2 && rel[1] === 'SKILL.md'))) return false
+  try {
+    const canonicalRoot = await realpath(root), canonicalFile = await realpath(path)
+    const inside = relative(canonicalRoot, canonicalFile)
+    return inside !== '' && inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside)
+  } catch (error) {
+    if (isAbsentPathError(error)) return false
+    throw error
+  }
+}
+
 async function discoverRoot(root: SkillRoot, ctx: Context, provider: string): Promise<SkillCandidate[]> {
   const skills: SkillCandidate[] = []
   const entries = await listSkillRootEntries(root, ctx)
@@ -738,6 +816,7 @@ async function discoverRoot(root: SkillRoot, ctx: Context, provider: string): Pr
         ? { path: entry.path, directory: root.path }
         : undefined
     if (locator === undefined) continue
+    if (root.sealed === true && !await sealedLocator(root.path, locator)) continue
     const parsed = await parseSkillFile(locator.path, ctx, undefined, root.trustedHost === true)
     if (parsed === undefined) continue
     skills.push({

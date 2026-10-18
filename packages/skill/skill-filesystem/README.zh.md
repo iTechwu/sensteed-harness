@@ -55,6 +55,16 @@ skill 可以是被扫描根目录顶层的目录 bundle `<name>/SKILL.md`，也�
 
 项目根目录是包含 `.git` 的最近祖先目录；如果不存在，则使用当前 cwd。用户 DSH 根目录会跳过其 `.system` 子目录。`includeDefaultRoots: false` 会省略项目根、用户根以及 `$DSH_BUNDLED_SKILL_DIR` 默认值，使隔离提供方只看到自身配置的根；`bundledSkillDir` 会按 rank 600 添加一个随包提供的根目录。
 
+<a id="host-selected-generation-roots"></a>
+
+### Host 选择的 generation 根目录
+
+Host 可在挂载提供方前调用 `installFilesystemSkillRootPolicy(ctx, policy)`。策略包含 `generationId`、唯一的 `providerName`，以及最多 256 个带 `path`、`source`、`rank` 的绝对根目录。安装需要不属于任何 scope 的 Host Context；辅助函数复制并冻结策略，拒绝规范化后重复的路径、无效 rank 和第二次安装。释放所属 Cordis fiber 会移除策略；更换 generation 需要重启该所有者。
+
+安装后，仅指定名称的非 scoped 提供方发现这些根。项目和用户默认值、自定义及 bundled 配置、环境默认值和 scoped 提供方均被忽略，包括复用 Host 名称的 scoped 提供方。加载时必须匹配提供方和 source，locator 必须为直接 Markdown 文件或 bundle 的 `SKILL.md`，且规范路径必须位于允许根内。符号链接逃逸和伪造资源目录会在 Host 读取前被拒绝。即使存在 agent 文件系统服务，这些根仍使用 Host 文件系统 I/O。
+
+该 API 只选择文件系统提供方的根，不验证 Hub release、不授予安装、不沙箱化可信 Cordis 插件，也不屏蔽独立的非文件系统提供方。Host 必须验证 generation 内容并保持其不可变。未安装策略时，现有文件系统发现行为不变。
+
 ### 挂载与配置
 
 与 skill 注册表一起加载该插件；它需要 `ctx.skills`。

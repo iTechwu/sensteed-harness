@@ -55,6 +55,16 @@ Default roots are scanned in this provider's rank order:
 
 The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. The user DSH root skips its `.system` child. `includeDefaultRoots: false` omits the project and user rows plus the `$DSH_BUNDLED_SKILL_DIR` default so an isolated provider sees only its own configured roots; `bundledSkillDir` adds a bundled root at rank 600.
 
+<a id="host-selected-generation-roots"></a>
+
+### Host-selected generation roots
+
+A Host can call `installFilesystemSkillRootPolicy(ctx, policy)` before mounting providers. The policy contains a `generationId`, one `providerName`, and at most 256 absolute roots with `path`, `source`, and `rank`. Installation requires an unscoped Host context; the helper copies and freezes the policy, rejects duplicate normalized paths and invalid ranks, and refuses a second installation. Dispose the owning Cordis fiber to remove it; replace a generation by restarting that owner.
+
+While installed, only the named unscoped provider discovers these roots. Project/user defaults, custom and bundled configuration, environment defaults, and scoped providers are ignored, including scoped providers that reuse the Host name. Loading requires a matching provider/source, a direct flat Markdown or bundle `SKILL.md` locator, and a canonical file inside an approved root. Symlink escapes and forged resource directories are rejected before Host reads. These roots use Host filesystem I/O even when an agent filesystem service is present.
+
+This API selects filesystem-provider roots; it does not authenticate Hub releases, grant installation, sandbox trusted Cordis plugins, or suppress independent non-filesystem providers. The Host must verify and keep generation contents immutable. Without an installed policy, existing filesystem discovery behavior is unchanged.
+
 ### Mount and configure
 
 Load the plugin alongside the skill registry; it requires `ctx.skills`.
