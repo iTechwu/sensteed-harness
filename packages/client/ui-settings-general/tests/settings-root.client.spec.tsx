@@ -399,20 +399,21 @@ describe('SettingsPanel navigation', () => {
         { id: 'im-robot', order: 60, label: 'IM robot' },
         { id: 'desktop', order: 70, label: 'Desktop' },
         { id: 'archived-sessions', order: 80, label: 'Archived sessions' },
+        { id: 'dofe-capabilities', order: 85, label: 'Built-in capabilities' },
         { id: 'contributed', order: 90, label: 'Contributed' },
       ],
     })
     openPanel()
     // Per-instance clip-path ids differ even when the drawn icon is identical.
-    const glyphs = ['General', 'User settings', 'Models', 'Skills', 'Built-in plugins', 'Agent presets', 'IM robot', 'Desktop', 'Archived sessions', 'Contributed']
+    const glyphs = ['General', 'User settings', 'Models', 'Skills', 'Built-in plugins', 'Agent presets', 'IM robot', 'Desktop', 'Archived sessions', 'Built-in capabilities', 'Contributed']
       .map(name => Array.from(screen.getByRole('button', { name }).querySelectorAll('svg path'))
         .map(path => path.getAttribute('d')).join('|'))
 
     expect(glyphs.every(glyph => glyph !== undefined && glyph !== '')).toBe(true)
     // Product-owned sections receive semantic glyphs, while an unknown
     // contribution keeps the settings gear as a deliberate fallback.
-    expect(new Set(glyphs.slice(0, 9)).size).toBe(9)
-    expect(glyphs[9]).toBe(glyphs[0])
+    expect(new Set(glyphs.slice(0, 10)).size).toBe(10)
+    expect(glyphs[10]).toBe(glyphs[0])
   })
 
   it('switches the rendered section on nav click', () => {

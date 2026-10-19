@@ -17,7 +17,7 @@ import {
   ConnectionIndicator, Tooltip, useModalLayer,
   IconAgentPresetOutlineMedium, IconArchiveOutlineMedium, IconCloseOutlineRegular, IconDataOutlineMedium,
   IconPanelLeftOutlineMedium, IconPluginPinwheelOutlineMedium,
-  IconSettingsOutlineMedium, IconSkillOutlineMedium, IconUserOutlineMedium, IconUsersOutlineMedium,
+  IconSettingsOutlineMedium, IconSkillOutlineMedium, IconSparkleMedium, IconUserOutlineMedium, IconUsersOutlineMedium,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ConnectionIndicatorState } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SettingsRootComponentProps, SettingsSectionRow } from './shell-contract.ts'
@@ -34,6 +34,7 @@ function navIcon(id: string) {
   if (id === 'account' || id === 'dofe-access' || id === 'user-settings') return <IconUserOutlineMedium className={css.navIcon} size={16} />
   if (id === 'general') return <IconSettingsOutlineMedium className={css.navIcon} size={16} />
   if (id === 'models') return <IconDataOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'capabilities' || id === 'dofe-capabilities') return <IconSparkleMedium className={css.navIcon} size={16} />
   if (id === 'skills' || id === 'skill-manager') return <IconSkillOutlineMedium className={css.navIcon} size={16} />
   if (id === 'agent-presets') return <IconAgentPresetOutlineMedium className={css.navIcon} size={16} />
   if (id === 'plugins' || id === 'built-in-plugins') return <IconPluginPinwheelOutlineMedium className={css.navIcon} size={16} />
