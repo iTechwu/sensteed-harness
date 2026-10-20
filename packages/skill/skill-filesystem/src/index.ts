@@ -262,14 +262,14 @@ export class FileSystemSkillProvider implements SkillProvider {
     let trustedRoot = false
     if (policy !== undefined) {
       if (scopeOf(this.ctx) !== undefined || (policy.providerName !== this.name&&this.name!=='user-local') || candidate.provider !== this.name
-        || typeof locator?.path !== 'string' || typeof locator.directory !== 'string') return undefined
+        || typeof locator.path !== 'string' || typeof locator.directory !== 'string') return undefined
       if(this.name==='user-local'){for(const root of policy.userRoots??[]){if(candidate.source==='user-local'&&candidate.name.startsWith('user-local-')&&await sealedLocator(root,locator))trustedRoot=true}}
       for (const root of this.name===policy.providerName?policy.roots:[]) {
         if (candidate.source === root.source && await sealedLocator(root.path, locator)) trustedRoot = true
       }
       if (!trustedRoot) return undefined
     }
-    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled' || trustedRoot === true&&this.name!=='user-local')
+    const parsed = await parseSkillFile(locator.path, this.ctx, options.signal, candidate.source === 'bundled' || (trustedRoot && this.name !== 'user-local'))
     if (parsed === undefined) return undefined
     return {
       name: this.name==='user-local'?`user-local-${parsed.name}`:parsed.name,
