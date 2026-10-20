@@ -109,6 +109,16 @@ describe('ui-settings-general shell', () => {
     off()
   })
 
+  it('projects only the winning section and restores the original after an override unloads', async ({ start }) => {
+    const c = await start()
+    const { sections } = injectedOf(c).hooks
+    const original = sections.getSnapshot().find(row => row.id === 'general')!
+    const remove = c.ctx.slots.register({ name: 'settings.section', id: 'general', priority: -100, label: 'Desktop override' } as never, () => null)
+    expect(sections.getSnapshot().filter(row => row.id === 'general')).toEqual([{ id: 'general', order: 0, label: 'Desktop override' }])
+    remove()
+    expect(sections.getSnapshot().filter(row => row.id === 'general')).toEqual([original])
+  })
+
   it('shows Account first only while signed in and removes it on sign-out', async ({ start }) => {
     const c = await start()
     const { sections } = injectedOf(c).hooks
