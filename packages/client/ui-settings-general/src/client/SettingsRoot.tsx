@@ -16,7 +16,7 @@ import clsx from 'clsx'
 import {
   ConnectionIndicator, Tooltip, useModalLayer,
   IconAgentPresetOutlineMedium, IconArchiveOutlineMedium, IconCloseOutlineRegular, IconDataOutlineMedium,
-  IconPanelLeftOutlineMedium, IconPluginPinwheelOutlineMedium,
+  IconDownloadOutlineMedium, IconPanelLeftOutlineMedium, IconPluginPinwheelOutlineMedium,
   IconSettingsOutlineMedium, IconSkillOutlineMedium, IconSparkleMedium, IconUserOutlineMedium, IconUsersOutlineMedium,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ConnectionIndicatorState } from '@deepseek-ai/dsh-client-ui-primitives'
@@ -40,6 +40,7 @@ function navIcon(id: string) {
   if (id === 'plugins' || id === 'built-in-plugins') return <IconPluginPinwheelOutlineMedium className={css.navIcon} size={16} />
   if (id === 'im' || id === 'im-robot' || id === 'sensteed-im' || id === 'connect-im') return <IconUsersOutlineMedium className={css.navIcon} size={16} />
   if (id === 'desktop') return <IconPanelLeftOutlineMedium className={css.navIcon} size={16} />
+  if (id === 'versions') return <IconDownloadOutlineMedium className={css.navIcon} size={16} />
   if (id === 'archived-sessions') return <IconArchiveOutlineMedium className={css.navIcon} size={16} />
   return <IconSettingsOutlineMedium className={css.navIcon} size={16} />
 }
