@@ -114,6 +114,20 @@ describe('ComposerAttachments', () => {
     expect(view.queryByRole('status')).toBeNull()
   })
 
+  it('hides the drop overlay when the window loses focus mid-drag', () => {
+    const view = render(<ComposerAttachments {...props()} />)
+    const dataTransfer = { types: ['Files'], files: [attachment('mid-drag').file], items: [], dropEffect: 'none' }
+    expect(fireEvent.dragEnter(document.body, { dataTransfer })).toBe(false)
+    expect(view.queryByRole('status')).not.toBeNull()
+    fireEvent.blur(window)
+    expect(view.queryByRole('status')).toBeNull()
+    // 焦点恢复后重新进入拖拽仍正常显示
+    expect(fireEvent.dragEnter(document.body, { dataTransfer })).toBe(false)
+    expect(view.queryByRole('status')).not.toBeNull()
+    fireEvent.drop(document.body, { dataTransfer })
+    expect(view.queryByRole('status')).toBeNull()
+  })
+
   it('reports dropped directories from the entry API beside the dropped files', () => {
     const onAddFiles = vi.fn()
     render(<ComposerAttachments {...props({ onAddFiles })} />)

@@ -72,16 +72,27 @@ export function installDocumentDropEvents(
       onAddFiles(files, droppedDirectories(dataTransfer, files))
     }
   }
+  // An OS file drag has no in-page source, so its `dragend` is unreliable and a
+  // lost `dragleave` (Alt-Tab, drag into DevTools) would pin the overlay on.
+  // Focus and visibility loss both mean the drag is gone.
+  const onVisibility = (): void => {
+    if (document.visibilityState === 'hidden') reset()
+  }
+  const onWindowBlur = (): void => { reset() }
   document.addEventListener('dragenter', onDragEnter)
   document.addEventListener('dragover', onDragOver)
   document.addEventListener('dragleave', onDragLeave)
   document.addEventListener('drop', onDrop)
+  document.addEventListener('visibilitychange', onVisibility)
   window.addEventListener('dragend', reset)
+  window.addEventListener('blur', onWindowBlur)
   return () => {
     document.removeEventListener('dragenter', onDragEnter)
     document.removeEventListener('dragover', onDragOver)
     document.removeEventListener('dragleave', onDragLeave)
     document.removeEventListener('drop', onDrop)
+    document.removeEventListener('visibilitychange', onVisibility)
     window.removeEventListener('dragend', reset)
+    window.removeEventListener('blur', onWindowBlur)
   }
 }
