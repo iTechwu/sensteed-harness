@@ -404,16 +404,17 @@ describe('SettingsPanel navigation', () => {
       ],
     })
     openPanel()
-    // Per-instance clip-path ids differ even when the drawn icon is identical.
-    const glyphs = ['General', 'User settings', 'Models', 'Skills', 'Built-in plugins', 'Agent presets', 'IM robot', 'Desktop', 'Archived sessions', 'Built-in capabilities', 'Contributed']
-      .map(name => Array.from(screen.getByRole('button', { name }).querySelectorAll('svg path'))
-        .map(path => path.getAttribute('d')).join('|'))
+    // Product-owned sections name their sprite symbol in data-icon; an unknown
+    // contribution keeps the settings gear as a deliberate fallback.
+    const icons = ['General', 'User settings', 'Models', 'Skills', 'Built-in plugins', 'Agent presets', 'IM robot', 'Desktop', 'Archived sessions', 'Built-in capabilities', 'Contributed']
+      .map(name => screen.getByRole('button', { name }).querySelector('svg')?.getAttribute('data-icon'))
 
-    expect(glyphs.every(glyph => glyph !== undefined && glyph !== '')).toBe(true)
+    expect(icons.every(icon => icon !== undefined && icon !== '')).toBe(true)
     // Product-owned sections receive semantic glyphs, while an unknown
     // contribution keeps the settings gear as a deliberate fallback.
-    expect(new Set(glyphs.slice(0, 10)).size).toBe(10)
-    expect(glyphs[10]).toBe(glyphs[0])
+    expect(new Set(icons.slice(0, 10)).size).toBe(10)
+    expect(icons[10]).toBe(icons[0])
+    expect(icons[7]).toContain('panel-left-outline')
   })
 
   it('switches the rendered section on nav click', () => {

@@ -42,6 +42,9 @@ export interface Config {
   /** Upper bound for the entire local attempt, even if the server advertises a longer TTL (default 600,000). */
   attemptTimeoutMs: number
 }
+
+/** Deployment options as the composition may supply them: every field optional before validation. */
+export type ConfigInput = Partial<Config>
 /** Validated deployment choices. */
 export const Config = Schema.object({
   ssoApiOrigin: Schema.string(),
@@ -80,7 +83,7 @@ export class PlatformAccount extends DeepSeekAccount {
   private removing: Promise<AccountView> | undefined
 
   /** @param ctx - Host with authorization and credentials services. @param config - deployment options. */
-  constructor(ctx: Context, config: Partial<Config> = {}) {
+  constructor(ctx: Context, config: ConfigInput = {}) {
     super(ctx)
     // Schemastery passes omitted deployment origins through as undefined; the
     // optional interface fields (not the schema's inferred required shape) are
